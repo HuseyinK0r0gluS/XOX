@@ -621,7 +621,7 @@ function listenGame() {
     if (status === 'waiting') {
       setStatus('Waiting for opponent...');
     } else if (status === 'playing') {
-      setStatus(turn === mySymbol ? '⟶ Your turn' : "Diğerinnn bıdıkınnn sırasıııı", turn === mySymbol ? 'highlight' : '');
+      setStatus(turn === mySymbol ? '⟶ Your turn' : "Diğer bıdıkınnn sırasıııı", turn === mySymbol ? 'highlight' : '');
       if (overlayShown) hideWinOverlay();
     } else if (status === 'draw') {
       setStatus("It's a draw!", 'win');
@@ -699,8 +699,8 @@ document.getElementById('createBtn').addEventListener('click', async () => {
     if (snap.val()) {
       if (waitUnsub) { waitUnsub(); waitUnsub = null; }
       hide($waiting); show($game);
-      document.getElementById('labelX').textContent = 'You ❤️';
-      document.getElementById('labelO').textContent = 'Opponent 💜';
+      document.getElementById('labelX').textContent = 'Bıdıkınnn Kocasııı ❤️';
+      document.getElementById('labelO').textContent = 'Bıdık Haşşaş 💜';
       listenGame();
     }
   });
