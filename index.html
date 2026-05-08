@@ -313,7 +313,7 @@ body::before {
 <body>
 <div class="wrapper">
   <div class="header">
-    <h1>❤️ O 💜</h1>
+    <h1>❤️ 💜 ❤️</h1>
     <p>Online Multiplayer</p>
   </div>
 
@@ -338,6 +338,7 @@ body::before {
       <button class="copy-btn" id="copyBtn">Copy ID</button>
     </div>
     <div class="pulse">Waiting for player 2 to join...</div>
+    <button class="btn btn-secondary" id="cancelWaitBtn" style="margin-top:18px">Cancel</button>
   </div>
 
   <!-- GAME -->
@@ -437,7 +438,7 @@ body::before {
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  getDatabase, ref, set, get, update, onValue, serverTimestamp, remove, runTransaction
+  getDatabase, ref, set, get, update, onValue, serverTimestamp, remove, runTransaction, onDisconnect
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 const firebaseConfig = {
@@ -454,12 +455,12 @@ const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
 
 /* ── State ── */
-let gameId      = null;
-let mySymbol    = null;
-let gameRef     = null;
-let unsubscribe = null;
+let gameId       = null;
+let mySymbol     = null;
+let gameRef      = null;
+let unsubscribe  = null;   // listener on the active game
+let waitUnsub    = null;   // listener on `players/O` while we wait for a joiner
 let overlayShown = false;
-let lastStatus  = null; // track to avoid duplicate score increments
 
 const WINS  = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
 const EMOJI = { X: '❤️', O: '💜' };
@@ -492,7 +493,10 @@ let notifTimer;
 let prevBoard = null;
 
 /* ── Helpers ── */
-function genId() { return Math.random().toString(36).slice(2,8).toUpperCase(); }
+function genId() {
+  // Pad with zeros so we ALWAYS get exactly 6 base36 chars
+  return (Math.random().toString(36) + '000000').slice(2, 8).toUpperCase();
+}
 
 function toast(msg) {
   $notif.textContent = msg;
@@ -501,7 +505,7 @@ function toast(msg) {
   notifTimer = setTimeout(() => $notif.classList.remove('show'), 2500);
 }
 
-function show(el) { el.style.display = 'block'; }
+function show(el) { el.style.display = ''; }
 function hide(el) { el.style.display = 'none'; }
 
 function setStatus(text, cls = '') {
@@ -509,16 +513,13 @@ function setStatus(text, cls = '') {
   $statusTxt.textContent = text;
 }
 
-/* Normalize whatever Firebase gives us into a proper 9-slot array */
+/* Normalize whatever Firebase gives us into a proper 9-slot array.
+   Firebase serializes sparse arrays as objects (e.g. { "0": "X", "3": "O" }),
+   so we read by index — which works for both arrays and plain objects. */
 function normalizeBoard(raw) {
   const b = Array(9).fill(null);
   if (!raw) return b;
-  if (Array.isArray(raw)) {
-    for (let i = 0; i < 9; i++) b[i] = raw[i] ?? null;
-  } else {
-    // Firebase serializes sparse arrays as objects: { "0": "X", "3": "O" }
-    for (let i = 0; i < 9; i++) b[i] = raw[i] ?? null;
-  }
+  for (let i = 0; i < 9; i++) b[i] = raw[i] ?? null;
   return b;
 }
 
@@ -544,9 +545,11 @@ function renderBoard(board, winCombo = null, prev = null) {
   });
 }
 
-function setTurnHighlight(turn) {
-  $cardX.classList.toggle('active', turn === 'X');
-  $cardO.classList.toggle('active', turn === 'O');
+function setTurnHighlight(turn, status) {
+  // Only show whose turn it is during active play
+  const playing = status === 'playing';
+  $cardX.classList.toggle('active', playing && turn === 'X');
+  $cardO.classList.toggle('active', playing && turn === 'O');
 }
 
 /* ── Win overlay ── */
@@ -581,7 +584,7 @@ function hideWinOverlay() {
 /* ── Game listener ── */
 function listenGame() {
   if (unsubscribe) unsubscribe();
-  lastStatus = null;
+  prevBoard = null;
 
   unsubscribe = onValue(gameRef, snap => {
     if (!snap.exists()) {
@@ -606,7 +609,7 @@ function listenGame() {
 
     renderBoard(board, winCombo, prevBoard);
     prevBoard = [...board];
-    setTurnHighlight(turn);
+    setTurnHighlight(turn, status);
 
     // Disable cells appropriately
     const myTurn = status === 'playing' && turn === mySymbol;
@@ -633,14 +636,13 @@ function listenGame() {
       }
     }
 
-    lastStatus = status;
-
     // Rematch coordination
     if (status === 'won' || status === 'draw') {
       const bothWant = rematchX && rematchO;
       const iWant    = mySymbol === 'X' ? rematchX : rematchO;
       if (bothWant) {
-        startNextRound(g);
+        // Only the host (X) writes the new round, so we don't get duplicate updates
+        if (mySymbol === 'X') startNextRound(g);
       } else if (iWant) {
         $rematchBtn.textContent = 'Waiting...';
         $rematchBtn.disabled = true;
@@ -685,13 +687,17 @@ document.getElementById('createBtn').addEventListener('click', async () => {
     rematchX: false, rematchO: false,
   });
 
+  // Auto-cleanup: if X drops while waiting (or anytime), the game is removed
+  onDisconnect(gameRef).remove();
+
   $displayId.textContent = gameId;
   hide($lobby); show($waiting);
 
   const waitRef = ref(db, `games/${gameId}/players/O`);
-  const unsub = onValue(waitRef, snap => {
+  if (waitUnsub) waitUnsub();
+  waitUnsub = onValue(waitRef, snap => {
     if (snap.val()) {
-      unsub();
+      if (waitUnsub) { waitUnsub(); waitUnsub = null; }
       hide($waiting); show($game);
       document.getElementById('labelX').textContent = 'You ❤️';
       document.getElementById('labelO').textContent = 'Opponent 💜';
@@ -701,14 +707,34 @@ document.getElementById('createBtn').addEventListener('click', async () => {
 });
 
 /* ── Copy ID ── */
-document.getElementById('copyBtn').addEventListener('click', () => {
-  navigator.clipboard.writeText(gameId || '').then(() => toast('Game ID copied!'));
+document.getElementById('copyBtn').addEventListener('click', async () => {
+  const id = gameId || '';
+  if (!id) return;
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(id);
+    } else {
+      // Fallback for non-secure contexts / older browsers
+      const ta = document.createElement('textarea');
+      ta.value = id;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    toast('Game ID copied!');
+  } catch {
+    toast('Copy failed — copy it manually.');
+  }
 });
 
 /* ── Join game ── */
-document.getElementById('joinBtn').addEventListener('click', async () => {
+async function joinGame() {
   const id = $joinInput.value.trim().toUpperCase();
-  if (id.length < 4) { $lobbyErr.textContent = 'Please enter a valid Game ID.'; return; }
+  if (id.length !== 6) { $lobbyErr.textContent = 'Game ID must be 6 characters.'; return; }
   $lobbyErr.textContent = '';
 
   const snap = await get(ref(db, `games/${id}`));
@@ -725,52 +751,64 @@ document.getElementById('joinBtn').addEventListener('click', async () => {
   await update(ref(db, `games/${gameId}/players`), { O: true });
   await update(gameRef, { status: 'playing' });
 
+  // Remove the game when this player disconnects, so abandoned games don't pile up
+  onDisconnect(gameRef).remove();
+
   hide($lobby); show($game);
   document.getElementById('labelX').textContent = 'Opponent ❤️';
   document.getElementById('labelO').textContent = 'You 💜';
   listenGame();
+}
+
+document.getElementById('joinBtn').addEventListener('click', joinGame);
+
+// Submit on Enter, auto-uppercase while typing, clear error on input
+$joinInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); joinGame(); }
+});
+$joinInput.addEventListener('input', () => {
+  const upper = $joinInput.value.toUpperCase();
+  if (upper !== $joinInput.value) $joinInput.value = upper;
+  if ($lobbyErr.textContent) $lobbyErr.textContent = '';
 });
 
 /* ── Cell click ── */
 $cells.forEach(cell => {
   cell.addEventListener('click', async () => {
     if (cell.classList.contains('taken') || cell.classList.contains('disabled')) return;
-    if (!gameRef) return;
+    if (!gameRef || !mySymbol) return;
 
-    const snap = await get(gameRef);
-    if (!snap.exists()) return;
+    const idx = parseInt(cell.dataset.i, 10);
+    if (Number.isNaN(idx)) return;
 
-    const g = snap.val();
-    if (g.status !== 'playing' || g.turn !== mySymbol) return;
+    // Atomic: validates turn + cell emptiness server-side, prevents races
+    await runTransaction(gameRef, current => {
+      if (!current) return;                                     // game gone
+      if (current.status !== 'playing') return;                 // not in play
+      if (current.turn !== mySymbol) return;                    // not my turn
 
-    const board = normalizeBoard(g.board);
-    const idx   = parseInt(cell.dataset.i);
-    if (board[idx]) return;
+      const board = normalizeBoard(current.board);
+      if (board[idx]) return;                                   // cell taken
 
-    board[idx] = mySymbol;
+      board[idx] = mySymbol;
+      current.board = board;
 
-    const winCombo = checkWin(board, mySymbol);
-    const draw     = !winCombo && isFull(board);
+      const winCombo = checkWin(board, mySymbol);
+      const draw     = !winCombo && isFull(board);
 
-    const updates = {
-      board,
-      turn: mySymbol === 'X' ? 'O' : 'X'
-    };
-
-    if (winCombo) {
-      updates.status = 'won';
-      updates.winner = mySymbol;
-      // Increment winner's score atomically in Firebase
-      const currentScores = g.scores || { X: 0, O: 0 };
-      updates.scores = {
-        ...currentScores,
-        [mySymbol]: (currentScores[mySymbol] || 0) + 1
-      };
-    } else if (draw) {
-      updates.status = 'draw';
-    }
-
-    await update(gameRef, updates);
+      if (winCombo) {
+        current.status = 'won';
+        current.winner = mySymbol;
+        current.scores = current.scores || { X: 0, O: 0 };
+        current.scores[mySymbol] = (current.scores[mySymbol] || 0) + 1;
+        // Don't swap `turn` on game-end — the winner stays the active side
+      } else if (draw) {
+        current.status = 'draw';
+      } else {
+        current.turn = mySymbol === 'X' ? 'O' : 'X';
+      }
+      return current;
+    });
   });
 });
 
@@ -782,26 +820,36 @@ $rematchBtn.addEventListener('click', async () => {
 });
 
 /* ── Leave (overlay) ── */
-$leaveBtn.addEventListener('click', () => {
-  if (unsubscribe) unsubscribe();
-  if (gameRef) remove(gameRef);
-  resetToLobby();
-});
+$leaveBtn.addEventListener('click', leaveCurrentGame);
 
 /* ── Leave (in-game) ── */
-$inGameLeave.addEventListener('click', () => {
-  if (unsubscribe) unsubscribe();
-  if (gameRef) remove(gameRef);
+$inGameLeave.addEventListener('click', leaveCurrentGame);
+
+/* ── Cancel (waiting screen) ── */
+document.getElementById('cancelWaitBtn').addEventListener('click', leaveCurrentGame);
+
+async function leaveCurrentGame() {
+  if (waitUnsub)   { waitUnsub();   waitUnsub   = null; }
+  if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+  if (gameRef) {
+    // Cancel pending onDisconnect so it doesn't fire after we've already removed
+    try { await onDisconnect(gameRef).cancel(); } catch {}
+    try { await remove(gameRef); } catch {}
+  }
   resetToLobby();
-});
+}
 
 /* ── Reset ── */
 function resetToLobby() {
+  if (waitUnsub)   { waitUnsub();   waitUnsub   = null; }
   if (unsubscribe) { unsubscribe(); unsubscribe = null; }
   gameId = null; mySymbol = null; gameRef = null; prevBoard = null;
-  lastStatus = null;
   $scoreX.textContent = '0'; $scoreO.textContent = '0';
   $joinInput.value = ''; $lobbyErr.textContent = '';
+  // Also clear any leftover board/status visuals
+  $cells.forEach(c => { c.className = 'cell'; c.textContent = ''; });
+  $cardX.classList.remove('active'); $cardO.classList.remove('active');
+  setStatus('Connecting...');
   hideWinOverlay();
   hide($game); hide($waiting); show($lobby);
 }
