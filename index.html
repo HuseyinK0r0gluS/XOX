@@ -621,7 +621,7 @@ function listenGame() {
     if (status === 'waiting') {
       setStatus('Waiting for opponent...');
     } else if (status === 'playing') {
-      setStatus(turn === mySymbol ? '⟶ Your turn' : "Opponent's turn", turn === mySymbol ? 'highlight' : '');
+      setStatus(turn === mySymbol ? '⟶ Your turn' : "Diğerinnn bıdıkınnn sırasıııı", turn === mySymbol ? 'highlight' : '');
       if (overlayShown) hideWinOverlay();
     } else if (status === 'draw') {
       setStatus("It's a draw!", 'win');
@@ -755,8 +755,8 @@ async function joinGame() {
   onDisconnect(gameRef).remove();
 
   hide($lobby); show($game);
-  document.getElementById('labelX').textContent = 'Opponent ❤️';
-  document.getElementById('labelO').textContent = 'You 💜';
+  document.getElementById('labelX').textContent = 'Bıdıkınnn Kocasııı ❤️';
+  document.getElementById('labelO').textContent = 'Bıdık Haşşaş 💜';
   listenGame();
 }
 
