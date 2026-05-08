@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>XOX — Online Multiplayer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0f;
+      --surface: #13131c;
+      --border: #2a2a3d;
+      --x-color: #ff4d6d;
+      --o-color: #4dc9ff;
+      --accent: #f5e642;
+      --text: #e8e8f0;
+      --muted: #6b6b8a;
+      --win-glow: rgba(245, 230, 66, 0.15);
+    }
+
+    body {
+      font-family: 'Space Mono', monospace;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 40% at 20% 20%, rgba(77, 201, 255, 0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255, 77, 109, 0.06) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 480px;
+    }
+
+    /* ── HEADER ─────────────────────────────────────────── */
+    .header {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+    .header h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2.8rem, 10vw, 4rem);
+      font-weight: 800;
+      letter-spacing: -2px;
+      line-height: 1;
+    }
+    .header h1 .x { color: var(--x-color); }
+    .header h1 .o { color: var(--o-color); }
+    .header p {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.75rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    /* ── PANELS ─────────────────────────────────────────── */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+    }
+
+    .panel-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    /* ── LOBBY ──────────────────────────────────────────── */
+    #lobby { display: flex; flex-direction: column; gap: 16px; }
+
+    .btn {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.9rem;
+      font-weight: 700;
+      padding: 14px 24px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+      letter-spacing: 1px;
+      width: 100%;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #0a0a0f;
+    }
+    .btn-primary:hover:not(:disabled) {
+      box-shadow: 0 0 24px rgba(245, 230, 66, 0.35);
+    }
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover:not(:disabled) {
+      border-color: var(--o-color);
+      color: var(--o-color);
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 0.7rem;
+      letter-spacing: 2px;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .input-group { display: flex; flex-direction: column; gap: 10px; }
+    .input-group input {
+      font-family: 'Space Mono', monospace;
+      font-size: 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      color: var(--text);
+      transition: border-color 0.2s;
+      width: 100%;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .input-group input::placeholder { color: var(--muted); text-transform: none; letter-spacing: 0; }
+    .input-group input:focus { outline: none; border-color: var(--o-color); }
+
+    /* ── WAITING ────────────────────────────────────────── */
+    #waiting { text-align: center; }
+    .game-id-box {
+      background: var(--bg);
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      margin: 16px 0;
+    }
+    .game-id-label { font-size: 0.65rem; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
+    .game-id-value {
+      font-family: 'Syne', sans-serif;
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: 6px;
+    }
+    .copy-btn {
+      margin-top: 12px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      padding: 7px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      letter-spacing: 1px;
+      transition: all 0.2s;
+    }
+    .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .pulse {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.75rem;
+      letter-spacing: 1px;
+    }
+    .pulse::before {
+      content: '';
+      width: 8px; height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: blink 1.4s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+    /* ── GAME SCREEN ────────────────────────────────────── */
+    #game { display: none; }
+
+    .scoreboard {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      gap: 8px;
+    }
+    .player-card {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .player-card.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 20px rgba(245,230,66,0.12);
+    }
+    .player-card .symbol {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .player-card .label {
+      font-size: 0.6rem;
+      letter-spacing: 2px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+    .player-card .score {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-top: 6px;
+      color: var(--accent);
+    }
+    .vs-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    /* ── STATUS BAR ─────────────────────────────────────── */
+    .status-bar {
+      text-align: center;
+      margin-bottom: 20px;
+      min-height: 28px;
+    }
+    .status-text {
+      font-size: 0.8rem;
+      letter-spacing: 1px;
+      color: var(--muted);
+      transition: color 0.3s;
+    }
+    .status-text.highlight { color: var(--accent); }
+    .status-text.win { color: var(--accent); font-weight: 700; letter-spacing: 2px; }
+
+    /* ── BOARD ──────────────────────────────────────────── */
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .cell {
+      aspect-ratio: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2rem, 10vw, 3rem);
+      font-weight: 800;
+      transition: border-color 0.2s, background 0.2s, transform 0.1s;
+      user-select: none;
+    }
+    .cell:hover:not(.taken):not(.disabled) {
+      border-color: var(--muted);
+      background: #1a1a28;
+    }
+    .cell:active:not(.taken):not(.disabled) { transform: scale(0.94); }
+    .cell.taken { cursor: default; }
+    .cell.disabled { cursor: not-allowed; }
+    .cell.x { color: var(--x-color); border-color: rgba(255,77,109,0.3); }
+    .cell.o { color: var(--o-color); border-color: rgba(77,201,255,0.3); }
+    .cell.winner {
+      background: var(--win-glow);
+      border-color: var(--accent) !important;
+      color: var(--accent) !important;
+      animation: winner-pulse 0.6s ease forwards;
+    }
+    @keyframes winner-pulse {
+      0%  { transform: scale(1); }
+      40% { transform: scale(1.08); }
+      70% { transform: scale(0.97); }
+      100%{ transform: scale(1); }
+    }
+    .cell.appear { animation: pop-in 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+    @keyframes pop-in {
+      from { transform: scale(0.5); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+
+    /* ── ACTION ROW ─────────────────────────────────────── */
+    .action-row { display: flex; gap: 10px; }
+    .action-row .btn { font-size: 0.78rem; padding: 11px 16px; }
+
+    /* ── NOTIFICATION ───────────────────────────────────── */
+    .notif {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 24px;
+      font-size: 0.8rem;
+      color: var(--text);
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      z-index: 100;
+      white-space: nowrap;
+    }
+    .notif.show { transform: translateX(-50%) translateY(0); }
+
+    /* ── UTILS ──────────────────────────────────────────── */
+    .hidden { display: none !important; }
+    .error-msg { color: var(--x-color); font-size: 0.75rem; text-align: center; min-height: 18px; }
+  </style>
+</head>
+<body>
+
+<div class="wrapper">
+  <div class="header">
+    <h1><span class="x">X</span>O<span class="x">X</span></h1>
+    <p>Online Multiplayer</p>
+  </div>
+
+  <!-- LOBBY -->
+  <div id="lobby" class="panel">
+    <div class="panel-title">// Start Playing</div>
+
+    <button class="btn btn-primary" id="createBtn">Create New Game</button>
+
+    <div class="divider">OR</div>
+
+    <div class="input-group">
+      <input type="text" id="joinInput" placeholder="Enter Game ID" maxlength="6"/>
+      <button class="btn btn-secondary" id="joinBtn">Join Game</button>
+    </div>
+
+    <p class="error-msg" id="lobbyError"></p>
+  </div>
+
+  <!-- WAITING -->
+  <div id="waiting" class="panel hidden">
+    <div class="panel-title">// Waiting for opponent</div>
+    <div class="game-id-box">
+      <div class="game-id-label">Share this ID</div>
+      <div class="game-id-value" id="displayGameId">——</div>
+      <button class="copy-btn" id="copyBtn">Copy ID</button>
+    </div>
+    <div class="pulse" id="waitPulse">Waiting for player 2 to join…</div>
+  </div>
+
+  <!-- GAME -->
+  <div id="game" style="display:none">
+    <div class="scoreboard">
+      <div class="player-card" id="cardX">
+        <div class="symbol" style="color:var(--x-color)">X</div>
+        <div class="label" id="labelX">You</div>
+        <div class="score" id="scoreX">0</div>
+      </div>
+      <div class="vs-label">VS</div>
+      <div class="player-card" id="cardO">
+        <div class="symbol" style="color:var(--o-color)">O</div>
+        <div class="label" id="labelO">Opponent</div>
+        <div class="score" id="scoreO">0</div>
+      </div>
+    </div>
+
+    <div class="status-bar">
+      <div class="status-text" id="statusText">Connecting…</div>
+    </div>
+
+    <div class="board" id="board">
+      <div class="cell" data-i="0"></div>
+      <div class="cell" data-i="1"></div>
+      <div class="cell" data-i="2"></div>
+      <div class="cell" data-i="3"></div>
+      <div class="cell" data-i="4"></div>
+      <div class="cell" data-i="5"></div>
+      <div class="cell" data-i="6"></div>
+      <div class="cell" data-i="7"></div>
+      <div class="cell" data-i="8"></div>
+    </div>
+
+    <div class="action-row">
+      <button class="btn btn-secondary" id="rematchBtn" style="display:none">Play Again</button>
+      <button class="btn btn-secondary" id="leaveBtn">Leave Game</button>
+    </div>
+  </div>
+</div>
+
+<div class="notif" id="notif"></div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getDatabase, ref, set, get, update, onValue, push, serverTimestamp, remove
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+/* ══════════════════════════════════════════════
+   🔥 FIREBASE CONFIG — Replace with your own!
+   ══════════════════════════════════════════════
+   1. Go to https://console.firebase.google.com
+   2. Create a project → Add Web App
+   3. Enable Realtime Database (Start in test mode)
+   4. Copy your config here
+   ══════════════════════════════════════════════ */
+const firebaseConfig = {
+
+  apiKey: "AIzaSyCrWc1GFu_dh3xQHfiDv2rVJmmJyXE46ds",
+
+  authDomain: "xoxgame-a5bca.firebaseapp.com",
+
+  databaseURL: "https://xoxgame-a5bca-default-rtdb.firebaseio.com",
+
+  projectId: "xoxgame-a5bca",
+
+  storageBucket: "xoxgame-a5bca.firebasestorage.app",
+
+  messagingSenderId: "509384233223",
+
+  appId: "1:509384233223:web:ac3804bb9a928a4d4035a2",
+
+  measurementId: "G-LMLFDX0PNP"
+
+};
+
+/* ── Init ─────────────────────────────────────── */
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+
+/* ── State ────────────────────────────────────── */
+let gameId   = null;
+let mySymbol = null;    // 'X' or 'O'
+let gameRef  = null;
+let unsubscribe = null;
+let scores   = { X: 0, O: 0 };
+
+const WINS = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+
+/* ── DOM refs ─────────────────────────────────── */
+const $lobby     = document.getElementById('lobby');
+const $waiting   = document.getElementById('waiting');
+const $game      = document.getElementById('game');
+const $displayId = document.getElementById('displayGameId');
+const $joinInput = document.getElementById('joinInput');
+const $lobbyErr  = document.getElementById('lobbyError');
+const $statusTxt = document.getElementById('statusText');
+const $board     = document.getElementById('board');
+const $cells     = [...document.querySelectorAll('.cell')];
+const $cardX     = document.getElementById('cardX');
+const $cardO     = document.getElementById('cardO');
+const $rematch   = document.getElementById('rematchBtn');
+const $scoreX    = document.getElementById('scoreX');
+const $scoreO    = document.getElementById('scoreO');
+const $notif     = document.getElementById('notif');
+let notifTimer;
+
+/* ── Helpers ──────────────────────────────────── */
+function genId() {
+  return Math.random().toString(36).slice(2,8).toUpperCase();
+}
+
+function toast(msg) {
+  $notif.textContent = msg;
+  $notif.classList.add('show');
+  clearTimeout(notifTimer);
+  notifTimer = setTimeout(() => $notif.classList.remove('show'), 2500);
+}
+
+function show(el) { el.classList.remove('hidden'); el.style.display = 'block'; }
+function hide(el) { el.classList.remove('hidden'); el.style.display = 'none'; }
+
+function setStatus(text, cls = '') {
+  $statusTxt.className = 'status-text ' + cls;
+  $statusTxt.textContent = text;
+}
+
+function checkWin(board, sym) {
+  return WINS.find(combo => combo.every(i => board[i] === sym)) || null;
+}
+
+function isFull(board) { return board.every(c => c !== null); }
+
+/* ── Render board ─────────────────────────────── */
+function renderBoard(board, winCombo = null, prevBoard = null) {
+  $cells.forEach((cell, i) => {
+    const val = board[i];
+    cell.className = 'cell';
+    if (val) {
+      cell.textContent = val;
+      cell.classList.add(val.toLowerCase(), 'taken');
+      if (prevBoard && !prevBoard[i]) cell.classList.add('appear');
+    } else {
+      cell.textContent = '';
+    }
+    if (winCombo && winCombo.includes(i)) cell.classList.add('winner');
+  });
+}
+
+function setTurnHighlight(turn) {
+  $cardX.classList.toggle('active', turn === 'X');
+  $cardO.classList.toggle('active', turn === 'O');
+}
+
+/* ── Game listener ────────────────────────────── */
+let prevBoard = null;
+
+function listenGame() {
+  if (unsubscribe) unsubscribe();
+  unsubscribe = onValue(gameRef, snap => {
+    if (!snap.exists()) {
+      toast('Game ended — opponent left.');
+      resetToLobby();
+      return;
+    }
+    const g = snap.val();
+    const board     = g.board     || Array(9).fill(null);
+    const turn      = g.turn      || 'X';
+    const status    = g.status    || 'playing';
+    const winner    = g.winner    || null;
+    const rematchX  = g.rematchX  || false;
+    const rematchO  = g.rematchO  || false;
+
+    const winCombo = winner ? (checkWin(board, winner) || null) : null;
+    renderBoard(board, winCombo, prevBoard);
+    prevBoard = [...board];
+
+    setTurnHighlight(turn);
+
+    // Make cells interactive or not
+    const myTurn = status === 'playing' && turn === mySymbol;
+    $cells.forEach(c => {
+      if (!c.classList.contains('taken')) {
+        c.classList.toggle('disabled', !myTurn);
+      }
+    });
+
+    // Status text
+    if (status === 'waiting') {
+      setStatus('Waiting for opponent…');
+    } else if (status === 'playing') {
+      setStatus(turn === mySymbol ? '⟶ Your turn' : 'Opponent\'s turn', turn === mySymbol ? 'highlight' : '');
+    } else if (status === 'draw') {
+      setStatus("It's a draw!", 'win');
+      $rematch.style.display = '';
+    } else if (status === 'won') {
+      if (winner === mySymbol) {
+        setStatus('🎉 You win!', 'win');
+        scores[mySymbol]++;
+      } else {
+        setStatus('Opponent wins this round.', '');
+        scores[winner]++;
+      }
+      $scoreX.textContent = scores.X;
+      $scoreO.textContent = scores.O;
+      $rematch.style.display = '';
+    }
+
+    // Rematch coordination
+    if (status === 'won' || status === 'draw') {
+      const bothWant = rematchX && rematchO;
+      const iWant    = mySymbol === 'X' ? rematchX : rematchO;
+      if (bothWant) {
+        // Reset game
+        startNextRound(g);
+      } else if (iWant) {
+        $rematch.textContent = 'Waiting for opponent…';
+        $rematch.disabled = true;
+      } else {
+        $rematch.textContent = 'Play Again';
+        $rematch.disabled = false;
+      }
+    }
+  });
+}
+
+async function startNextRound(g) {
+  // Swap first turn
+  const nextFirst = g.firstTurn === 'X' ? 'O' : 'X';
+  await update(gameRef, {
+    board: Array(9).fill(null),
+    turn: nextFirst,
+    status: 'playing',
+    winner: null,
+    firstTurn: nextFirst,
+    rematchX: false,
+    rematchO: false,
+  });
+  prevBoard = null;
+  $rematch.style.display = 'none';
+  $rematch.disabled = false;
+  $rematch.textContent = 'Play Again';
+}
+
+/* ── Create game ──────────────────────────────── */
+document.getElementById('createBtn').addEventListener('click', async () => {
+  gameId   = genId();
+  mySymbol = 'X';
+  gameRef  = ref(db, `games/${gameId}`);
+
+  await set(gameRef, {
+    board: Array(9).fill(null),
+    turn: 'X',
+    firstTurn: 'X',
+    status: 'waiting',
+    winner: null,
+    players: { X: true },
+    createdAt: serverTimestamp(),
+    rematchX: false,
+    rematchO: false,
+  });
+
+  $displayId.textContent = gameId;
+  hide($lobby);
+  show($waiting);
+
+  // Wait for O to join
+  const waitRef = ref(db, `games/${gameId}/players/O`);
+  const unsub = onValue(waitRef, snap => {
+    if (snap.val()) {
+      unsub();
+      hide($waiting);
+      show($game);
+      document.getElementById('labelX').textContent = 'You (X)';
+      document.getElementById('labelO').textContent = 'Opponent (O)';
+      listenGame();
+    }
+  });
+});
+
+/* ── Copy ID ──────────────────────────────────── */
+document.getElementById('copyBtn').addEventListener('click', () => {
+  navigator.clipboard.writeText(gameId || '').then(() => toast('Game ID copied!'));
+});
+
+/* ── Join game ────────────────────────────────── */
+document.getElementById('joinBtn').addEventListener('click', async () => {
+  const id = $joinInput.value.trim().toUpperCase();
+  if (id.length < 4) { $lobbyErr.textContent = 'Please enter a valid Game ID.'; return; }
+  $lobbyErr.textContent = '';
+
+  const snap = await get(ref(db, `games/${id}`));
+  if (!snap.exists()) { $lobbyErr.textContent = 'Game not found. Check the ID.'; return; }
+  const g = snap.val();
+  if (g.players?.O)  { $lobbyErr.textContent = 'Game is full.'; return; }
+  if (g.status !== 'waiting') { $lobbyErr.textContent = 'Game already started.'; return; }
+
+  gameId   = id;
+  mySymbol = 'O';
+  gameRef  = ref(db, `games/${gameId}`);
+
+  await update(ref(db, `games/${gameId}/players`), { O: true });
+  await update(gameRef, { status: 'playing' });
+
+  hide($lobby);
+  show($game);
+  document.getElementById('labelX').textContent = 'Opponent (X)';
+  document.getElementById('labelO').textContent = 'You (O)';
+  listenGame();
+});
+
+/* ── Cell click ───────────────────────────────── */
+$cells.forEach(cell => {
+  cell.addEventListener('click', async () => {
+    if (cell.classList.contains('taken') || cell.classList.contains('disabled')) return;
+    if (!gameRef) return;
+
+    const snap = await get(gameRef);
+    if (!snap.exists()) return;
+    const g = snap.val();
+    if (g.status !== 'playing' || g.turn !== mySymbol) return;
+
+    const board = g.board || Array(9).fill(null);
+    const idx   = parseInt(cell.dataset.i);
+    if (board[idx]) return;
+
+    board[idx] = mySymbol;
+
+    const winCombo = checkWin(board, mySymbol);
+    const draw     = !winCombo && isFull(board);
+    const updates  = {
+      board,
+      turn: mySymbol === 'X' ? 'O' : 'X',
+    };
+    if (winCombo) { updates.status = 'won';  updates.winner = mySymbol; }
+    else if (draw){ updates.status = 'draw'; }
+
+    await update(gameRef, updates);
+  });
+});
+
+/* ── Rematch ──────────────────────────────────── */
+$rematch.addEventListener('click', async () => {
+  if (!gameRef) return;
+  const field = mySymbol === 'X' ? 'rematchX' : 'rematchO';
+  await update(gameRef, { [field]: true });
+});
+
+/* ── Leave ────────────────────────────────────── */
+document.getElementById('leaveBtn').addEventListener('click', () => {
+  if (unsubscribe) unsubscribe();
+  if (gameRef) remove(gameRef);
+  resetToLobby();
+});
+
+function resetToLobby() {
+  if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+  gameId = null; mySymbol = null; gameRef = null; prevBoard = null;
+  scores = { X: 0, O: 0 };
+  $scoreX.textContent = '0'; $scoreO.textContent = '0';
+  $rematch.style.display = 'none';
+  $joinInput.value = '';
+  $lobbyErr.textContent = '';
+  hide($game);
+  hide($waiting);
+  show($lobby);
+}
+</script>
+</body>
+</html>
