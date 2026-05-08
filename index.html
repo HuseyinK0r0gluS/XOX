@@ -509,6 +509,19 @@ function setStatus(text, cls = '') {
   $statusTxt.textContent = text;
 }
 
+/* Normalize whatever Firebase gives us into a proper 9-slot array */
+function normalizeBoard(raw) {
+  const b = Array(9).fill(null);
+  if (!raw) return b;
+  if (Array.isArray(raw)) {
+    for (let i = 0; i < 9; i++) b[i] = raw[i] ?? null;
+  } else {
+    // Firebase serializes sparse arrays as objects: { "0": "X", "3": "O" }
+    for (let i = 0; i < 9; i++) b[i] = raw[i] ?? null;
+  }
+  return b;
+}
+
 function checkWin(board, sym) {
   return WINS.find(combo => combo.every(i => board[i] === sym)) || null;
 }
@@ -578,7 +591,7 @@ function listenGame() {
     }
 
     const g        = snap.val();
-    const board    = g.board    || Array(9).fill(null);
+    const board    = normalizeBoard(g.board);
     const turn     = g.turn     || 'X';
     const status   = g.status   || 'playing';
     const winner   = g.winner   || null;
@@ -730,7 +743,7 @@ $cells.forEach(cell => {
     const g = snap.val();
     if (g.status !== 'playing' || g.turn !== mySymbol) return;
 
-    const board = [...(g.board || Array(9).fill(null))];
+    const board = normalizeBoard(g.board);
     const idx   = parseInt(cell.dataset.i);
     if (board[idx]) return;
 
