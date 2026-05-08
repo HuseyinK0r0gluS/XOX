@@ -314,30 +314,30 @@ body::before {
 <div class="wrapper">
   <div class="header">
     <h1>❤️ 💜 ❤️</h1>
-    <p>Online Multiplayer</p>
+    <p>Bıdık XOX Oyunu</p>
   </div>
 
   <!-- LOBBY -->
   <div id="lobby" class="panel">
-    <div class="panel-title">// Start Playing</div>
-    <button class="btn btn-primary" id="createBtn">Create New Game</button>
-    <div class="divider">OR</div>
+    <div class="panel-title">// Hadi Başlayakk </div>
+    <button class="btn btn-primary" id="createBtn">Yeni Oyun Oluştur</button>
+    <div class="divider">Ya da</div>
     <div class="input-group">
-      <input type="text" id="joinInput" placeholder="Enter Game ID" maxlength="6"/>
-      <button class="btn btn-secondary" id="joinBtn">Join Game</button>
+      <input type="text" id="joinInput" placeholder="Oyun ID'si girin" maxlength="6"/>
+      <button class="btn btn-secondary" id="joinBtn">Oyuna Katıl</button>
     </div>
     <p class="error-msg" id="lobbyError"></p>
   </div>
 
   <!-- WAITING -->
   <div id="waiting" class="panel" style="display:none">
-    <div class="panel-title">// Waiting for opponent</div>
+    <div class="panel-title">// Karşı bıdık bekleniliyooo</div>
     <div class="game-id-box">
-      <div class="game-id-label">Share this ID</div>
+      <div class="game-id-label">ID'yi paylaşınız</div>
       <div class="game-id-value" id="displayGameId">——</div>
-      <button class="copy-btn" id="copyBtn">Copy ID</button>
+      <button class="copy-btn" id="copyBtn">ID'yi Kopyala</button>
     </div>
-    <div class="pulse">Waiting for player 2 to join...</div>
+    <div class="pulse">Bıdık2 bekleniliyooo...</div>
     <button class="btn btn-secondary" id="cancelWaitBtn" style="margin-top:18px">Cancel</button>
   </div>
 
@@ -346,13 +346,13 @@ body::before {
     <div class="scoreboard">
       <div class="player-card" id="cardX">
         <div class="symbol">❤️</div>
-        <div class="label" id="labelX">You</div>
+        <div class="label" id="labelX">Bıdıkın Kocası</div>
         <div class="score" id="scoreX">0</div>
       </div>
       <div class="vs-label">VS</div>
       <div class="player-card" id="cardO">
         <div class="symbol">💜</div>
-        <div class="label" id="labelO">Opponent</div>
+        <div class="label" id="labelO">Bıdık Haşşaş</div>
         <div class="score" id="scoreO">0</div>
       </div>
     </div>
@@ -422,8 +422,8 @@ body::before {
   </div>
   <div class="final-content">
     <span class="win-emoji" id="winEmoji">🎉</span>
-    <h2 id="winTitle">You Win!</h2>
-    <p id="winSubtitle">Amazing game!</p>
+    <h2 id="winTitle">Bıdıkkk kazandıııı!</h2>
+    <p id="winSubtitle">Sürprizimi beğenmişsinizdirrr umarımmm hanfendiiii, siziii çooook seviyoreeee, bıdıkkk yanaklarınızdannnn öpüyoreeee!</p>
     <p id="winScore" style="margin-top:8px; font-size:1.1rem;"></p>
     <div class="final-btns">
       <button class="btn btn-play-again" id="rematchBtn">Play Again</button>
@@ -557,17 +557,17 @@ function showWinOverlay(iWon, isDraw, scores) {
   overlayShown = true;
   if (isDraw) {
     $winEmoji.textContent = '🤝';
-    $winTitle.textContent = "It's a Draw!";
-    $winSubtitle.textContent = 'Too close to call — rematch?';
+    $winTitle.textContent = "Berabere Kalınıldı!";
+    $winSubtitle.textContent = 'Bıdıkkkk bi beraberlikkkk — Var mısınnn bi dahaaa?';
   } else if (iWon) {
     $winEmoji.textContent = EMOJI[mySymbol];
-    $winTitle.textContent = '🎉 You Win!';
-    $winSubtitle.textContent = 'Incredible — well played!';
+    $winTitle.textContent = '🎉 Bıdıkkk kazandıııı!';
+    $winSubtitle.textContent = 'Sürprizimi beğenmişsinizdirrr umarımmm hanfendiiii, siziii çooook seviyoreeee, bıdıkkk yanaklarınızdannnn öpüyoreeee!';
   } else {
     const oppSym = mySymbol === 'X' ? 'O' : 'X';
     $winEmoji.textContent = EMOJI[oppSym];
-    $winTitle.textContent = 'Opponent Wins!';
-    $winSubtitle.textContent = 'Better luck next round!';
+    $winTitle.textContent = 'Bıdıkkkk kaybettiii!';
+    $winSubtitle.textContent = 'Bi dahakine yenersinnnn sıpacıkkk, ben her zamannn o güzell gözlerine yeniliyorummm o kadannn kötü bişey değilll kaybetmekkkk!';
   }
   $winScore.textContent = `❤️ ${scores.X || 0}  —  💜 ${scores.O || 0}`;
   $rematchHint.textContent = '';
