@@ -13,7 +13,7 @@
       --surface: #13131c;
       --border: #2a2a3d;
       --x-color: #ff4d6d;
-      --o-color: #4dc9ff;
+      --o-color: #b97fff;
       --accent: #f5e642;
       --text: #e8e8f0;
       --muted: #6b6b8a;
@@ -38,8 +38,8 @@
       position: fixed;
       inset: 0;
       background:
-        radial-gradient(ellipse 60% 40% at 20% 20%, rgba(77, 201, 255, 0.06) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255, 77, 109, 0.06) 0%, transparent 60%);
+        radial-gradient(ellipse 60% 40% at 20% 20%, rgba(185,127,255,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255,77,109,0.06) 0%, transparent 60%);
       pointer-events: none;
       z-index: 0;
     }
@@ -52,10 +52,7 @@
     }
 
     /* ── HEADER ─────────────────────────────────────────── */
-    .header {
-      text-align: center;
-      margin-bottom: 36px;
-    }
+    .header { text-align: center; margin-bottom: 36px; }
     .header h1 {
       font-family: 'Syne', sans-serif;
       font-size: clamp(2.8rem, 10vw, 4rem);
@@ -63,8 +60,6 @@
       letter-spacing: -2px;
       line-height: 1;
     }
-    .header h1 .x { color: var(--x-color); }
-    .header h1 .o { color: var(--o-color); }
     .header p {
       margin-top: 8px;
       color: var(--muted);
@@ -80,7 +75,6 @@
       border-radius: 16px;
       padding: 28px;
     }
-
     .panel-title {
       font-family: 'Syne', sans-serif;
       font-size: 0.7rem;
@@ -107,38 +101,16 @@
     }
     .btn:active { transform: scale(0.97); }
     .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-    .btn-primary {
-      background: var(--accent);
-      color: #0a0a0f;
-    }
-    .btn-primary:hover:not(:disabled) {
-      box-shadow: 0 0 24px rgba(245, 230, 66, 0.35);
-    }
-    .btn-secondary {
-      background: transparent;
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
-    .btn-secondary:hover:not(:disabled) {
-      border-color: var(--o-color);
-      color: var(--o-color);
-    }
+    .btn-primary { background: var(--accent); color: #0a0a0f; }
+    .btn-primary:hover:not(:disabled) { box-shadow: 0 0 24px rgba(245,230,66,0.35); }
+    .btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover:not(:disabled) { border-color: var(--o-color); color: var(--o-color); }
 
     .divider {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      color: var(--muted);
-      font-size: 0.7rem;
-      letter-spacing: 2px;
+      display: flex; align-items: center; gap: 12px;
+      color: var(--muted); font-size: 0.7rem; letter-spacing: 2px;
     }
-    .divider::before, .divider::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border);
-    }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
     .input-group { display: flex; flex-direction: column; gap: 10px; }
     .input-group input {
@@ -188,85 +160,37 @@
       transition: all 0.2s;
     }
     .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
-
     .pulse {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      color: var(--muted);
-      font-size: 0.75rem;
-      letter-spacing: 1px;
+      display: inline-flex; align-items: center; gap: 8px;
+      color: var(--muted); font-size: 0.75rem; letter-spacing: 1px;
     }
     .pulse::before {
-      content: '';
-      width: 8px; height: 8px;
-      background: var(--accent);
-      border-radius: 50%;
+      content: ''; width: 8px; height: 8px;
+      background: var(--accent); border-radius: 50%;
       animation: blink 1.4s ease-in-out infinite;
     }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
 
     /* ── GAME SCREEN ────────────────────────────────────── */
-    #game { display: none; }
-
     .scoreboard {
-      display: flex;
-      align-items: center;
+      display: flex; align-items: center;
       justify-content: space-between;
-      margin-bottom: 24px;
-      gap: 8px;
+      margin-bottom: 24px; gap: 8px;
     }
     .player-card {
-      flex: 1;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 12px;
-      text-align: center;
+      flex: 1; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px; text-align: center;
       transition: border-color 0.3s, box-shadow 0.3s;
     }
-    .player-card.active {
-      border-color: var(--accent);
-      box-shadow: 0 0 20px rgba(245,230,66,0.12);
-    }
-    .player-card .symbol {
-      font-family: 'Syne', sans-serif;
-      font-size: 1.6rem;
-      font-weight: 800;
-      line-height: 1;
-    }
-    .player-card .label {
-      font-size: 0.6rem;
-      letter-spacing: 2px;
-      color: var(--muted);
-      text-transform: uppercase;
-      margin-top: 4px;
-    }
-    .player-card .score {
-      font-size: 1.1rem;
-      font-weight: 700;
-      margin-top: 6px;
-      color: var(--accent);
-    }
-    .vs-label {
-      font-family: 'Syne', sans-serif;
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: var(--muted);
-    }
+    .player-card.active { border-color: var(--accent); box-shadow: 0 0 20px rgba(245,230,66,0.12); }
+    .player-card .symbol { font-size: 1.8rem; line-height: 1; }
+    .player-card .label { font-size: 0.6rem; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-top: 4px; }
+    .player-card .score { font-size: 1.1rem; font-weight: 700; margin-top: 6px; color: var(--accent); }
+    .vs-label { font-family: 'Syne', sans-serif; font-size: 0.8rem; font-weight: 700; color: var(--muted); }
 
     /* ── STATUS BAR ─────────────────────────────────────── */
-    .status-bar {
-      text-align: center;
-      margin-bottom: 20px;
-      min-height: 28px;
-    }
-    .status-text {
-      font-size: 0.8rem;
-      letter-spacing: 1px;
-      color: var(--muted);
-      transition: color 0.3s;
-    }
+    .status-bar { text-align: center; margin-bottom: 20px; min-height: 28px; }
+    .status-text { font-size: 0.8rem; letter-spacing: 1px; color: var(--muted); transition: color 0.3s; }
     .status-text.highlight { color: var(--accent); }
     .status-text.win { color: var(--accent); font-weight: 700; letter-spacing: 2px; }
 
@@ -277,7 +201,6 @@
       gap: 10px;
       margin-bottom: 20px;
     }
-
     .cell {
       aspect-ratio: 1;
       background: var(--bg);
@@ -287,25 +210,19 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      font-family: 'Syne', sans-serif;
       font-size: clamp(2rem, 10vw, 3rem);
-      font-weight: 800;
       transition: border-color 0.2s, background 0.2s, transform 0.1s;
       user-select: none;
     }
-    .cell:hover:not(.taken):not(.disabled) {
-      border-color: var(--muted);
-      background: #1a1a28;
-    }
+    .cell:hover:not(.taken):not(.disabled) { border-color: var(--muted); background: #1a1a28; }
     .cell:active:not(.taken):not(.disabled) { transform: scale(0.94); }
     .cell.taken { cursor: default; }
     .cell.disabled { cursor: not-allowed; }
-    .cell.x { color: var(--x-color); border-color: rgba(255,77,109,0.3); }
-    .cell.o { color: var(--o-color); border-color: rgba(77,201,255,0.3); }
+    .cell.x { border-color: rgba(255,77,109,0.35); }
+    .cell.o { border-color: rgba(185,127,255,0.35); }
     .cell.winner {
       background: var(--win-glow);
       border-color: var(--accent) !important;
-      color: var(--accent) !important;
       animation: winner-pulse 0.6s ease forwards;
     }
     @keyframes winner-pulse {
@@ -326,24 +243,102 @@
 
     /* ── NOTIFICATION ───────────────────────────────────── */
     .notif {
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
+      position: fixed; bottom: 24px; left: 50%;
       transform: translateX(-50%) translateY(80px);
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 12px 24px;
-      font-size: 0.8rem;
-      color: var(--text);
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px 24px;
+      font-size: 0.8rem; color: var(--text);
       transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-      z-index: 100;
-      white-space: nowrap;
+      z-index: 100; white-space: nowrap;
     }
     .notif.show { transform: translateX(-50%) translateY(0); }
 
+    /* ── WIN CELEBRATION OVERLAY ────────────────────────── */
+    .final-overlay {
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.88);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+    .final-overlay.show { display: flex; }
+
+    .final-lilies {
+      position: absolute; inset: 0;
+      pointer-events: none; z-index: 0; overflow: hidden;
+    }
+    .lily {
+      position: absolute;
+      width: clamp(80px, 15vw, 120px);
+      height: clamp(110px, 20vw, 160px);
+      opacity: 0;
+      animation: lily-pop 0.8s forwards ease-out;
+    }
+    .lily-1 { left: 8%; bottom: 6%; animation-delay: 0.1s; }
+    .lily-2 { right: 8%; bottom: 4%; animation-delay: 0.25s; }
+    .lily-3 { left: 50%; bottom: 0; animation-delay: 0.4s; animation-name: lily-pop-center; }
+    @keyframes lily-pop {
+      0%   { opacity: 0; transform: scale(0.5) translateY(30px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    @keyframes lily-pop-center {
+      0%   { opacity: 0; transform: translateX(-50%) scale(0.5) translateY(30px); }
+      100% { opacity: 1; transform: translateX(-50%) scale(1) translateY(0); }
+    }
+
+    .bottom-lilies {
+      position: absolute; left: 0; bottom: 0;
+      width: 100%; height: clamp(80px, 15vh, 140px);
+      display: flex; justify-content: space-around;
+      align-items: flex-end; pointer-events: none; z-index: 0;
+    }
+    .bottom-lily { width: clamp(30px, 5vw, 58px); height: clamp(55px, 10vw, 108px); opacity: 0.9; }
+
+    .final-content {
+      position: relative; z-index: 1;
+      text-align: center; color: white;
+    }
+    .final-content .win-emoji {
+      font-size: clamp(3.5rem, 14vw, 6rem);
+      display: block; margin-bottom: 14px;
+      animation: bounce-in 0.6s cubic-bezier(0.34,1.56,0.64,1) forwards;
+    }
+    @keyframes bounce-in {
+      from { transform: scale(0); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
+    }
+    .final-content h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(1.5rem, 5vw, 2.6rem);
+      font-weight: 800; margin-bottom: 10px;
+      text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+    }
+    .final-content p {
+      font-size: clamp(0.85rem, 3vw, 1.1rem);
+      opacity: 0.85; margin: 6px 0;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+    .final-btns {
+      display: flex; gap: 12px;
+      justify-content: center; margin-top: 24px; flex-wrap: wrap;
+    }
+    .final-btns .btn { width: auto; }
+    .btn-play-again { background: var(--accent); color: #0a0a0f; }
+    .btn-play-again:hover:not(:disabled) { box-shadow: 0 0 20px rgba(245,230,66,0.4); }
+    .btn-leave-final {
+      background: transparent; color: white;
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+    .rematch-hint {
+      margin-top: 12px; font-size: 0.7rem;
+      opacity: 0.45; letter-spacing: 1px; min-height: 18px;
+    }
+
     /* ── UTILS ──────────────────────────────────────────── */
-    .hidden { display: none !important; }
     .error-msg { color: var(--x-color); font-size: 0.75rem; text-align: center; min-height: 18px; }
   </style>
 </head>
@@ -351,48 +346,44 @@
 
 <div class="wrapper">
   <div class="header">
-    <h1><span class="x">X</span>O<span class="x">X</span></h1>
+    <h1>❤️ O 💜</h1>
     <p>Online Multiplayer</p>
   </div>
 
   <!-- LOBBY -->
   <div id="lobby" class="panel">
     <div class="panel-title">// Start Playing</div>
-
     <button class="btn btn-primary" id="createBtn">Create New Game</button>
-
     <div class="divider">OR</div>
-
     <div class="input-group">
       <input type="text" id="joinInput" placeholder="Enter Game ID" maxlength="6"/>
       <button class="btn btn-secondary" id="joinBtn">Join Game</button>
     </div>
-
     <p class="error-msg" id="lobbyError"></p>
   </div>
 
   <!-- WAITING -->
-  <div id="waiting" class="panel hidden">
+  <div id="waiting" class="panel" style="display:none">
     <div class="panel-title">// Waiting for opponent</div>
     <div class="game-id-box">
       <div class="game-id-label">Share this ID</div>
       <div class="game-id-value" id="displayGameId">——</div>
       <button class="copy-btn" id="copyBtn">Copy ID</button>
     </div>
-    <div class="pulse" id="waitPulse">Waiting for player 2 to join…</div>
+    <div class="pulse">Waiting for player 2 to join…</div>
   </div>
 
   <!-- GAME -->
   <div id="game" style="display:none">
     <div class="scoreboard">
       <div class="player-card" id="cardX">
-        <div class="symbol" style="color:var(--x-color)">X</div>
+        <div class="symbol">❤️</div>
         <div class="label" id="labelX">You</div>
         <div class="score" id="scoreX">0</div>
       </div>
       <div class="vs-label">VS</div>
       <div class="player-card" id="cardO">
-        <div class="symbol" style="color:var(--o-color)">O</div>
+        <div class="symbol">💜</div>
         <div class="label" id="labelO">Opponent</div>
         <div class="score" id="scoreO">0</div>
       </div>
@@ -415,9 +406,70 @@
     </div>
 
     <div class="action-row">
-      <button class="btn btn-secondary" id="rematchBtn" style="display:none">Play Again</button>
-      <button class="btn btn-secondary" id="leaveBtn">Leave Game</button>
+      <button class="btn btn-secondary" id="inGameLeaveBtn">Leave Game</button>
     </div>
+  </div>
+</div>
+
+<!-- WIN CELEBRATION OVERLAY (same lily scene as Valentine's game) -->
+<div class="final-overlay" id="finalOverlay">
+  <div class="final-lilies" aria-hidden="true">
+    <svg class="lily lily-1" viewBox="0 0 100 160">
+      <g>
+        <path d="M50 150 L50 85" stroke="#4caf50" stroke-width="4" stroke-linecap="round"/>
+        <ellipse cx="42" cy="105" rx="8" ry="16" fill="#66bb6a"/>
+        <ellipse cx="58" cy="112" rx="7" ry="14" fill="#66bb6a"/>
+        <ellipse cx="50" cy="55" rx="9" ry="22" fill="#ffffff" stroke="#f8bbd0" stroke-width="2"/>
+        <ellipse cx="38" cy="60" rx="8" ry="20" fill="#ffffff" stroke="#f8bbd0" stroke-width="2" transform="rotate(-25 38 60)"/>
+        <ellipse cx="62" cy="60" rx="8" ry="20" fill="#ffffff" stroke="#f8bbd0" stroke-width="2" transform="rotate(25 62 60)"/>
+        <circle cx="50" cy="58" r="5" fill="#ffd54f"/>
+      </g>
+    </svg>
+    <svg class="lily lily-2" viewBox="0 0 100 160">
+      <g>
+        <path d="M50 150 L50 85" stroke="#4caf50" stroke-width="4" stroke-linecap="round"/>
+        <ellipse cx="60" cy="108" rx="8" ry="16" fill="#66bb6a"/>
+        <ellipse cx="45" cy="115" rx="7" ry="14" fill="#66bb6a"/>
+        <ellipse cx="50" cy="55" rx="9" ry="22" fill="#ffffff" stroke="#f8bbd0" stroke-width="2"/>
+        <ellipse cx="38" cy="60" rx="8" ry="20" fill="#ffffff" stroke="#f8bbd0" stroke-width="2" transform="rotate(-20 38 60)"/>
+        <ellipse cx="62" cy="60" rx="8" ry="20" fill="#ffffff" stroke="#f8bbd0" stroke-width="2" transform="rotate(20 62 60)"/>
+        <circle cx="50" cy="58" r="5" fill="#ffd54f"/>
+      </g>
+    </svg>
+    <svg class="lily lily-3" viewBox="0 0 100 160">
+      <g>
+        <path d="M50 150 L50 80" stroke="#4caf50" stroke-width="4" stroke-linecap="round"/>
+        <ellipse cx="40" cy="110" rx="9" ry="18" fill="#66bb6a"/>
+        <ellipse cx="60" cy="118" rx="8" ry="16" fill="#66bb6a"/>
+        <ellipse cx="50" cy="50" rx="10" ry="24" fill="#ffffff" stroke="#f8bbd0" stroke-width="2"/>
+        <ellipse cx="35" cy="56" rx="9" ry="21" fill="#ffffff" stroke="#f8bbd0" stroke-width="2" transform="rotate(-18 35 56)"/>
+        <ellipse cx="65" cy="56" rx="9" ry="21" fill="#ffffff" stroke="#f8bbd0" stroke-width="2" transform="rotate(18 65 56)"/>
+        <circle cx="50" cy="54" r="5" fill="#ffd54f"/>
+      </g>
+    </svg>
+
+    <div class="bottom-lilies">
+      <svg class="bottom-lily" viewBox="0 0 100 160"><g><path d="M50 150 L50 80" stroke="#4caf50" stroke-width="4" stroke-linecap="round"/><ellipse cx="40" cy="115" rx="9" ry="18" fill="#66bb6a"/><ellipse cx="60" cy="123" rx="8" ry="16" fill="#66bb6a"/><ellipse cx="50" cy="55" rx="10" ry="24" fill="#fff" stroke="#f8bbd0" stroke-width="2"/><ellipse cx="35" cy="61" rx="9" ry="21" fill="#fff" stroke="#f8bbd0" stroke-width="2" transform="rotate(-18 35 61)"/><ellipse cx="65" cy="61" rx="9" ry="21" fill="#fff" stroke="#f8bbd0" stroke-width="2" transform="rotate(18 65 61)"/><circle cx="50" cy="58" r="5" fill="#ffd54f"/></g></svg>
+      <svg class="bottom-lily" viewBox="0 0 100 160"><g><path d="M50 150 L50 80" stroke="#4caf50" stroke-width="4" stroke-linecap="round"/><ellipse cx="42" cy="112" rx="9" ry="18" fill="#66bb6a"/><ellipse cx="60" cy="120" rx="8" ry="16" fill="#66bb6a"/><ellipse cx="50" cy="55" rx="10" ry="24" fill="#fff" stroke="#f8bbd0" stroke-width="2"/><ellipse cx="35" cy="61" rx="9" ry="21" fill="#fff" stroke="#f8bbd0" stroke-width="2" transform="rotate(-14 35 61)"/><ellipse cx="65" cy="61" rx="9" ry="21" fill="#fff" stroke="#f8bbd0" stroke-width="2" transform="rotate(14 65 61)"/><circle cx="50" cy="58" r="5" fill="#ffd54f"/></g></svg>
+      <svg class="bottom-lily" viewBox="0 0 100 160"><g><path d="M50 150 L50 80" stroke="#4caf50" stroke-width="4" stroke-linecap="round"/><ellipse cx="40" cy="110" rx="9" ry="18" fill="#66bb6a"/><ellipse cx="60" cy="118" rx="8" ry="16" fill="#66bb6a"/><ellipse cx="50" cy="55" rx="10" ry="24" fill="#fff" stroke="#f8bbd0" stroke-width="2"/><ellipse cx="35" cy="61" rx="9" ry="21" fill="#fff" stroke="#f8bbd0" stroke-width="2" transform="rotate(-10 35 61)"/><ellipse cx="65" cy="61" rx="9" ry="21" fill="#fff" stroke="#f8bbd0" stroke-width="2" transform="rotate(10 65 61)"/><circle cx="50" cy="58" r="5" fill="#ffd54f"/></g></svg>
+      <svg class="bottom-lily" viewBox="0 0 100 160"><g><path d="M50 150 L50 80" stroke="#4caf50" stroke-width="4" stroke-linecap="round"/><ellipse cx="40" cy="110" rx="9" ry="18" fill="#66bb6a"/><ellipse cx="60" cy="118" rx="8" ry="16" fill="#66bb6a"/><ellipse cx="50" cy="55" rx="10" ry="24" fill="#fff" stroke="#f8bbd0" stroke-width="2"/><ellipse cx="35" cy="61" rx="9" ry="21" fill="#fff" stroke="#f8bbd0" stroke-width="2"/><ellipse cx="65" cy="61" rx="9" ry="21" fill="#fff" stroke="#f8bbd0" stroke-width="2"/><circle cx="50" cy="58" r="5" fill="#ffd54f"/></g></svg>
+      <svg class="bottom-lily" viewBox="0 0 100 160"><g><path d="M50 150 L50 80" stroke="#4caf50" stroke-width="4" stroke-linecap="round"/><ellipse cx="42" cy="112" rx="9" ry="18" fill="#66bb6a"/><ellipse cx="58" cy="120" rx="8" ry="16" fill="#66bb6a"/><ellipse cx="50" cy="55" rx="10" ry="24" fill="#fff" stroke="#f8bbd0" stroke-width="2"/><ellipse cx="36" cy="61" rx="9" ry="21" fill="#fff" stroke="#f8bbd0" stroke-width="2" transform="rotate(-8 36 61)"/><ellipse cx="64" cy="61" rx="9" ry="21" fill="#fff" stroke="#f8bbd0" stroke-width="2" transform="rotate(8 64 61)"/><circle cx="50" cy="58" r="5" fill="#ffd54f"/></g></svg>
+      <svg class="bottom-lily" viewBox="0 0 100 160"><g><path d="M50 150 L50 80" stroke="#4caf50" stroke-width="4" stroke-linecap="round"/><ellipse cx="38" cy="112" rx="9" ry="18" fill="#66bb6a"/><ellipse cx="62" cy="120" rx="8" ry="16" fill="#66bb6a"/><ellipse cx="50" cy="55" rx="10" ry="24" fill="#fff" stroke="#f8bbd0" stroke-width="2"/><ellipse cx="34" cy="61" rx="9" ry="21" fill="#fff" stroke="#f8bbd0" stroke-width="2" transform="rotate(-12 34 61)"/><ellipse cx="66" cy="61" rx="9" ry="21" fill="#fff" stroke="#f8bbd0" stroke-width="2" transform="rotate(12 66 61)"/><circle cx="50" cy="58" r="5" fill="#ffd54f"/></g></svg>
+      <svg class="bottom-lily" viewBox="0 0 100 160"><g><path d="M50 150 L50 80" stroke="#4caf50" stroke-width="4" stroke-linecap="round"/><ellipse cx="40" cy="114" rx="9" ry="18" fill="#66bb6a"/><ellipse cx="60" cy="122" rx="8" ry="16" fill="#66bb6a"/><ellipse cx="50" cy="55" rx="10" ry="24" fill="#fff" stroke="#f8bbd0" stroke-width="2"/><ellipse cx="36" cy="61" rx="9" ry="21" fill="#fff" stroke="#f8bbd0" stroke-width="2" transform="rotate(-5 36 61)"/><ellipse cx="64" cy="61" rx="9" ry="21" fill="#fff" stroke="#f8bbd0" stroke-width="2" transform="rotate(5 64 61)"/><circle cx="50" cy="58" r="5" fill="#ffd54f"/></g></svg>
+      <svg class="bottom-lily" viewBox="0 0 100 160"><g><path d="M50 150 L50 80" stroke="#4caf50" stroke-width="4" stroke-linecap="round"/><ellipse cx="40" cy="110" rx="9" ry="18" fill="#66bb6a"/><ellipse cx="60" cy="118" rx="8" ry="16" fill="#66bb6a"/><ellipse cx="50" cy="55" rx="10" ry="24" fill="#fff" stroke="#f8bbd0" stroke-width="2"/><ellipse cx="35" cy="61" rx="9" ry="21" fill="#fff" stroke="#f8bbd0" stroke-width="2"/><ellipse cx="65" cy="61" rx="9" ry="21" fill="#fff" stroke="#f8bbd0" stroke-width="2"/><circle cx="50" cy="58" r="5" fill="#ffd54f"/></g></svg>
+    </div>
+  </div>
+
+  <div class="final-content">
+    <span class="win-emoji" id="winEmoji">🎉</span>
+    <h2 id="winTitle">You Win!</h2>
+    <p id="winSubtitle">Amazing game!</p>
+    <p id="winScore" style="margin-top:8px; font-size:1.1rem;"></p>
+    <div class="final-btns">
+      <button class="btn btn-play-again" id="rematchBtn">Play Again</button>
+      <button class="btn btn-leave-final" id="leaveBtn">Leave Game</button>
+    </div>
+    <p class="rematch-hint" id="rematchHint"></p>
   </div>
 </div>
 
@@ -427,7 +479,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  getDatabase, ref, set, get, update, onValue, push, serverTimestamp, remove
+  getDatabase, ref, set, get, update, onValue, serverTimestamp, remove
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 /* ══════════════════════════════════════════════
@@ -439,60 +491,57 @@ import {
    4. Copy your config here
    ══════════════════════════════════════════════ */
 const firebaseConfig = {
-
   apiKey: "AIzaSyCrWc1GFu_dh3xQHfiDv2rVJmmJyXE46ds",
-
   authDomain: "xoxgame-a5bca.firebaseapp.com",
-
   databaseURL: "https://xoxgame-a5bca-default-rtdb.firebaseio.com",
-
   projectId: "xoxgame-a5bca",
-
   storageBucket: "xoxgame-a5bca.firebasestorage.app",
-
   messagingSenderId: "509384233223",
-
   appId: "1:509384233223:web:ac3804bb9a928a4d4035a2",
-
   measurementId: "G-LMLFDX0PNP"
-
 };
 
-/* ── Init ─────────────────────────────────────── */
 const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
 
 /* ── State ────────────────────────────────────── */
-let gameId   = null;
-let mySymbol = null;    // 'X' or 'O'
-let gameRef  = null;
+let gameId      = null;
+let mySymbol    = null;   // 'X' or 'O'
+let gameRef     = null;
 let unsubscribe = null;
-let scores   = { X: 0, O: 0 };
+let scores      = { X: 0, O: 0 };
+let overlayShown = false;
 
-const WINS = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+const WINS  = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+const EMOJI = { X: '❤️', O: '💜' };
 
 /* ── DOM refs ─────────────────────────────────── */
-const $lobby     = document.getElementById('lobby');
-const $waiting   = document.getElementById('waiting');
-const $game      = document.getElementById('game');
-const $displayId = document.getElementById('displayGameId');
-const $joinInput = document.getElementById('joinInput');
-const $lobbyErr  = document.getElementById('lobbyError');
-const $statusTxt = document.getElementById('statusText');
-const $board     = document.getElementById('board');
-const $cells     = [...document.querySelectorAll('.cell')];
-const $cardX     = document.getElementById('cardX');
-const $cardO     = document.getElementById('cardO');
-const $rematch   = document.getElementById('rematchBtn');
-const $scoreX    = document.getElementById('scoreX');
-const $scoreO    = document.getElementById('scoreO');
-const $notif     = document.getElementById('notif');
+const $lobby        = document.getElementById('lobby');
+const $waiting      = document.getElementById('waiting');
+const $game         = document.getElementById('game');
+const $displayId    = document.getElementById('displayGameId');
+const $joinInput    = document.getElementById('joinInput');
+const $lobbyErr     = document.getElementById('lobbyError');
+const $statusTxt    = document.getElementById('statusText');
+const $cells        = [...document.querySelectorAll('.cell')];
+const $cardX        = document.getElementById('cardX');
+const $cardO        = document.getElementById('cardO');
+const $scoreX       = document.getElementById('scoreX');
+const $scoreO       = document.getElementById('scoreO');
+const $notif        = document.getElementById('notif');
+const $finalOverlay = document.getElementById('finalOverlay');
+const $winEmoji     = document.getElementById('winEmoji');
+const $winTitle     = document.getElementById('winTitle');
+const $winSubtitle  = document.getElementById('winSubtitle');
+const $winScore     = document.getElementById('winScore');
+const $rematchBtn   = document.getElementById('rematchBtn');
+const $rematchHint  = document.getElementById('rematchHint');
+const $leaveBtn     = document.getElementById('leaveBtn');
+const $inGameLeave  = document.getElementById('inGameLeaveBtn');
 let notifTimer;
 
 /* ── Helpers ──────────────────────────────────── */
-function genId() {
-  return Math.random().toString(36).slice(2,8).toUpperCase();
-}
+function genId() { return Math.random().toString(36).slice(2,8).toUpperCase(); }
 
 function toast(msg) {
   $notif.textContent = msg;
@@ -501,8 +550,8 @@ function toast(msg) {
   notifTimer = setTimeout(() => $notif.classList.remove('show'), 2500);
 }
 
-function show(el) { el.classList.remove('hidden'); el.style.display = 'block'; }
-function hide(el) { el.classList.remove('hidden'); el.style.display = 'none'; }
+function show(el) { el.style.display = 'block'; }
+function hide(el) { el.style.display = 'none'; }
 
 function setStatus(text, cls = '') {
   $statusTxt.className = 'status-text ' + cls;
@@ -512,18 +561,19 @@ function setStatus(text, cls = '') {
 function checkWin(board, sym) {
   return WINS.find(combo => combo.every(i => board[i] === sym)) || null;
 }
-
 function isFull(board) { return board.every(c => c !== null); }
 
 /* ── Render board ─────────────────────────────── */
-function renderBoard(board, winCombo = null, prevBoard = null) {
+let prevBoard = null;
+
+function renderBoard(board, winCombo = null, prev = null) {
   $cells.forEach((cell, i) => {
     const val = board[i];
     cell.className = 'cell';
     if (val) {
-      cell.textContent = val;
+      cell.textContent = EMOJI[val];
       cell.classList.add(val.toLowerCase(), 'taken');
-      if (prevBoard && !prevBoard[i]) cell.classList.add('appear');
+      if (prev && !prev[i]) cell.classList.add('appear');
     } else {
       cell.textContent = '';
     }
@@ -536,9 +586,38 @@ function setTurnHighlight(turn) {
   $cardO.classList.toggle('active', turn === 'O');
 }
 
-/* ── Game listener ────────────────────────────── */
-let prevBoard = null;
+/* ── Win overlay ──────────────────────────────── */
+function showWinOverlay(iWon, isDraw) {
+  overlayShown = true;
 
+  if (isDraw) {
+    $winEmoji.textContent = '🤝';
+    $winTitle.textContent = "It's a Draw!";
+    $winSubtitle.textContent = 'Too close to call — rematch?';
+  } else if (iWon) {
+    $winEmoji.textContent = EMOJI[mySymbol];
+    $winTitle.textContent = '🎉 You Win!';
+    $winSubtitle.textContent = 'Incredible — well played!';
+  } else {
+    const oppSym = mySymbol === 'X' ? 'O' : 'X';
+    $winEmoji.textContent = EMOJI[oppSym];
+    $winTitle.textContent = 'Opponent Wins!';
+    $winSubtitle.textContent = 'Better luck next round!';
+  }
+
+  $winScore.textContent = `❤️ ${scores.X}  —  💜 ${scores.O}`;
+  $rematchHint.textContent = '';
+  $rematchBtn.textContent = 'Play Again';
+  $rematchBtn.disabled = false;
+  $finalOverlay.classList.add('show');
+}
+
+function hideWinOverlay() {
+  overlayShown = false;
+  $finalOverlay.classList.remove('show');
+}
+
+/* ── Game listener ────────────────────────────── */
 function listenGame() {
   if (unsubscribe) unsubscribe();
   unsubscribe = onValue(gameRef, snap => {
@@ -547,47 +626,40 @@ function listenGame() {
       resetToLobby();
       return;
     }
-    const g = snap.val();
-    const board     = g.board     || Array(9).fill(null);
-    const turn      = g.turn      || 'X';
-    const status    = g.status    || 'playing';
-    const winner    = g.winner    || null;
-    const rematchX  = g.rematchX  || false;
-    const rematchO  = g.rematchO  || false;
+    const g        = snap.val();
+    const board    = g.board    || Array(9).fill(null);
+    const turn     = g.turn     || 'X';
+    const status   = g.status   || 'playing';
+    const winner   = g.winner   || null;
+    const rematchX = g.rematchX || false;
+    const rematchO = g.rematchO || false;
 
     const winCombo = winner ? (checkWin(board, winner) || null) : null;
     renderBoard(board, winCombo, prevBoard);
     prevBoard = [...board];
-
     setTurnHighlight(turn);
 
-    // Make cells interactive or not
     const myTurn = status === 'playing' && turn === mySymbol;
     $cells.forEach(c => {
-      if (!c.classList.contains('taken')) {
+      if (!c.classList.contains('taken'))
         c.classList.toggle('disabled', !myTurn);
-      }
     });
 
-    // Status text
     if (status === 'waiting') {
       setStatus('Waiting for opponent…');
     } else if (status === 'playing') {
-      setStatus(turn === mySymbol ? '⟶ Your turn' : 'Opponent\'s turn', turn === mySymbol ? 'highlight' : '');
+      setStatus(turn === mySymbol ? '⟶ Your turn' : "Opponent's turn", turn === mySymbol ? 'highlight' : '');
+      if (overlayShown) hideWinOverlay();
     } else if (status === 'draw') {
       setStatus("It's a draw!", 'win');
-      $rematch.style.display = '';
+      if (!overlayShown) showWinOverlay(false, true);
     } else if (status === 'won') {
-      if (winner === mySymbol) {
-        setStatus('🎉 You win!', 'win');
-        scores[mySymbol]++;
-      } else {
-        setStatus('Opponent wins this round.', '');
-        scores[winner]++;
-      }
+      const iWon = winner === mySymbol;
+      if (iWon) { scores[mySymbol]++; setStatus('🎉 You win!', 'win'); }
+      else       { scores[winner]++;  setStatus('Opponent wins!', ''); }
       $scoreX.textContent = scores.X;
       $scoreO.textContent = scores.O;
-      $rematch.style.display = '';
+      if (!overlayShown) showWinOverlay(iWon, false);
     }
 
     // Rematch coordination
@@ -595,21 +667,21 @@ function listenGame() {
       const bothWant = rematchX && rematchO;
       const iWant    = mySymbol === 'X' ? rematchX : rematchO;
       if (bothWant) {
-        // Reset game
         startNextRound(g);
       } else if (iWant) {
-        $rematch.textContent = 'Waiting for opponent…';
-        $rematch.disabled = true;
+        $rematchBtn.textContent = 'Waiting…';
+        $rematchBtn.disabled = true;
+        $rematchHint.textContent = 'Waiting for opponent to accept…';
       } else {
-        $rematch.textContent = 'Play Again';
-        $rematch.disabled = false;
+        $rematchBtn.textContent = 'Play Again';
+        $rematchBtn.disabled = false;
+        $rematchHint.textContent = '';
       }
     }
   });
 }
 
 async function startNextRound(g) {
-  // Swap first turn
   const nextFirst = g.firstTurn === 'X' ? 'O' : 'X';
   await update(gameRef, {
     board: Array(9).fill(null),
@@ -621,9 +693,7 @@ async function startNextRound(g) {
     rematchO: false,
   });
   prevBoard = null;
-  $rematch.style.display = 'none';
-  $rematch.disabled = false;
-  $rematch.textContent = 'Play Again';
+  hideWinOverlay();
 }
 
 /* ── Create game ──────────────────────────────── */
@@ -634,29 +704,23 @@ document.getElementById('createBtn').addEventListener('click', async () => {
 
   await set(gameRef, {
     board: Array(9).fill(null),
-    turn: 'X',
-    firstTurn: 'X',
-    status: 'waiting',
-    winner: null,
+    turn: 'X', firstTurn: 'X',
+    status: 'waiting', winner: null,
     players: { X: true },
     createdAt: serverTimestamp(),
-    rematchX: false,
-    rematchO: false,
+    rematchX: false, rematchO: false,
   });
 
   $displayId.textContent = gameId;
-  hide($lobby);
-  show($waiting);
+  hide($lobby); show($waiting);
 
-  // Wait for O to join
   const waitRef = ref(db, `games/${gameId}/players/O`);
   const unsub = onValue(waitRef, snap => {
     if (snap.val()) {
       unsub();
-      hide($waiting);
-      show($game);
-      document.getElementById('labelX').textContent = 'You (X)';
-      document.getElementById('labelO').textContent = 'Opponent (O)';
+      hide($waiting); show($game);
+      document.getElementById('labelX').textContent = 'You ❤️';
+      document.getElementById('labelO').textContent = 'Opponent 💜';
       listenGame();
     }
   });
@@ -676,8 +740,8 @@ document.getElementById('joinBtn').addEventListener('click', async () => {
   const snap = await get(ref(db, `games/${id}`));
   if (!snap.exists()) { $lobbyErr.textContent = 'Game not found. Check the ID.'; return; }
   const g = snap.val();
-  if (g.players?.O)  { $lobbyErr.textContent = 'Game is full.'; return; }
-  if (g.status !== 'waiting') { $lobbyErr.textContent = 'Game already started.'; return; }
+  if (g.players?.O)          { $lobbyErr.textContent = 'Game is full.'; return; }
+  if (g.status !== 'waiting'){ $lobbyErr.textContent = 'Game already started.'; return; }
 
   gameId   = id;
   mySymbol = 'O';
@@ -686,10 +750,9 @@ document.getElementById('joinBtn').addEventListener('click', async () => {
   await update(ref(db, `games/${gameId}/players`), { O: true });
   await update(gameRef, { status: 'playing' });
 
-  hide($lobby);
-  show($game);
-  document.getElementById('labelX').textContent = 'Opponent (X)';
-  document.getElementById('labelO').textContent = 'You (O)';
+  hide($lobby); show($game);
+  document.getElementById('labelX').textContent = 'Opponent ❤️';
+  document.getElementById('labelO').textContent = 'You 💜';
   listenGame();
 });
 
@@ -709,45 +772,45 @@ $cells.forEach(cell => {
     if (board[idx]) return;
 
     board[idx] = mySymbol;
-
     const winCombo = checkWin(board, mySymbol);
     const draw     = !winCombo && isFull(board);
-    const updates  = {
-      board,
-      turn: mySymbol === 'X' ? 'O' : 'X',
-    };
+    const updates  = { board, turn: mySymbol === 'X' ? 'O' : 'X' };
     if (winCombo) { updates.status = 'won';  updates.winner = mySymbol; }
     else if (draw){ updates.status = 'draw'; }
-
     await update(gameRef, updates);
   });
 });
 
-/* ── Rematch ──────────────────────────────────── */
-$rematch.addEventListener('click', async () => {
+/* ── Rematch (from overlay) ───────────────────── */
+$rematchBtn.addEventListener('click', async () => {
   if (!gameRef) return;
   const field = mySymbol === 'X' ? 'rematchX' : 'rematchO';
   await update(gameRef, { [field]: true });
 });
 
-/* ── Leave ────────────────────────────────────── */
-document.getElementById('leaveBtn').addEventListener('click', () => {
+/* ── Leave (from overlay) ─────────────────────── */
+$leaveBtn.addEventListener('click', () => {
   if (unsubscribe) unsubscribe();
   if (gameRef) remove(gameRef);
   resetToLobby();
 });
 
+/* ── Leave (in-game button) ───────────────────── */
+$inGameLeave.addEventListener('click', () => {
+  if (unsubscribe) unsubscribe();
+  if (gameRef) remove(gameRef);
+  resetToLobby();
+});
+
+/* ── Reset ────────────────────────────────────── */
 function resetToLobby() {
   if (unsubscribe) { unsubscribe(); unsubscribe = null; }
   gameId = null; mySymbol = null; gameRef = null; prevBoard = null;
   scores = { X: 0, O: 0 };
   $scoreX.textContent = '0'; $scoreO.textContent = '0';
-  $rematch.style.display = 'none';
-  $joinInput.value = '';
-  $lobbyErr.textContent = '';
-  hide($game);
-  hide($waiting);
-  show($lobby);
+  $joinInput.value = ''; $lobbyErr.textContent = '';
+  hideWinOverlay();
+  hide($game); hide($waiting); show($lobby);
 }
 </script>
 </body>
