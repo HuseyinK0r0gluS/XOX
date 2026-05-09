@@ -477,6 +477,15 @@ body::before {
 <!-- YouTube IFrame API -->
 <script src="https://www.youtube.com/iframe_api"></script>
 
+<!-- IMPORTANT: onYouTubeIframeAPIReady MUST be in a plain script (not module)
+     so the YouTube API can find it on window. We expose a callback bridge here. -->
+<script>
+  window.__ytReadyCallbacks = [];
+  window.onYouTubeIframeAPIReady = function () {
+    window.__ytReadyCallbacks.forEach(fn => fn());
+  };
+</script>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
@@ -500,12 +509,11 @@ const db  = getDatabase(app);
 let ytPlayer      = null;
 let ytReady       = false;
 let musicMuted    = false;
-let pendingPlay   = false;  // play was requested before player was ready
+let pendingPlay   = false;
 
 const $musicToggle = document.getElementById('musicToggle');
 
-// Called by YouTube IFrame API when ready (must be on window)
-window.onYouTubeIframeAPIReady = function () {
+window.__ytReadyCallbacks.push(function () {
   ytPlayer = new YT.Player('yt-player', {
     height: '1',
     width: '1',
@@ -516,7 +524,7 @@ window.onYouTubeIframeAPIReady = function () {
       disablekb: 1,
       fs: 0,
       loop: 1,
-      playlist: 'z9uGdp_tcgY',  // needed for loop to work
+      playlist: 'z9uGdp_tcgY',
       rel: 0,
       modestbranding: 1,
     },
@@ -528,7 +536,7 @@ window.onYouTubeIframeAPIReady = function () {
       },
     },
   });
-};
+});
 
 function playWinMusic() {
   if (!ytReady) { pendingPlay = true; return; }
@@ -569,7 +577,7 @@ let gameRef      = null;
 let unsubscribe  = null;
 let waitUnsub    = null;
 let overlayShown = false;
-let musicPlayed  = false;  // track so we only trigger once per result
+let musicPlayed  = false;
 
 const WINS  = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
 const EMOJI = { X: '❤️', O: '💜' };
@@ -660,7 +668,6 @@ function setTurnHighlight(turn, status) {
 function showWinOverlay(iWon, isDraw, scores) {
   overlayShown = true;
 
-  // 🎵 Play music on win or draw
   if (!musicPlayed) {
     musicPlayed = true;
     playWinMusic();
