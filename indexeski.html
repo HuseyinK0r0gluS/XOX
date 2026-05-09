@@ -308,37 +308,6 @@ body::before {
   opacity: 0.45; letter-spacing: 1px; min-height: 18px;
 }
 .error-msg { color: var(--x-color); font-size: 0.75rem; text-align: center; min-height: 18px; }
-
-/* ── YouTube music player ── */
-#yt-player-wrap {
-  position: fixed;
-  bottom: -9999px;
-  left: -9999px;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  pointer-events: none;
-  z-index: -1;
-}
-.music-toggle {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 2000;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 50%;
-  width: 44px;
-  height: 44px;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 1.2rem;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-.music-toggle:hover { border-color: var(--accent); box-shadow: 0 0 14px rgba(245,230,66,0.3); }
-.music-toggle.visible { display: flex; }
 </style>
 </head>
 <body>
@@ -453,7 +422,7 @@ body::before {
   </div>
   <div class="final-content">
     <span class="win-emoji" id="winEmoji">🎉</span>
-    <h2 id="winTitle">Bıdıkkk kazandıınınn!</h2>
+    <h2 id="winTitle">Bıdıkkk kazandıııı!</h2>
     <p id="winSubtitle">Sürprizimi beğenmişsinizdirrr umarımmm hanfendiiii, siziii çooook seviyoreeee, bıdıkkk yanaklarınızdannnn öpüyoreeee!</p>
     <p id="winScore" style="margin-top:8px; font-size:1.1rem;"></p>
     <div class="final-btns">
@@ -464,18 +433,7 @@ body::before {
   </div>
 </div>
 
-<!-- Hidden YouTube iframe for music -->
-<div id="yt-player-wrap">
-  <div id="yt-player"></div>
-</div>
-
-<!-- Floating mute/unmute button -->
-<button class="music-toggle" id="musicToggle" title="Toggle music">🎵</button>
-
 <div class="notif" id="notif"></div>
-
-<!-- YouTube IFrame API -->
-<script src="https://www.youtube.com/iframe_api"></script>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -496,80 +454,13 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
 
-/* ── YouTube Music Player ── */
-let ytPlayer      = null;
-let ytReady       = false;
-let musicMuted    = false;
-let pendingPlay   = false;  // play was requested before player was ready
-
-const $musicToggle = document.getElementById('musicToggle');
-
-// Called by YouTube IFrame API when ready (must be on window)
-window.onYouTubeIframeAPIReady = function () {
-  ytPlayer = new YT.Player('yt-player', {
-    height: '1',
-    width: '1',
-    videoId: 'z9uGdp_tcgY',
-    playerVars: {
-      autoplay: 0,
-      controls: 0,
-      disablekb: 1,
-      fs: 0,
-      loop: 1,
-      playlist: 'z9uGdp_tcgY',  // needed for loop to work
-      rel: 0,
-      modestbranding: 1,
-    },
-    events: {
-      onReady: () => {
-        ytReady = true;
-        ytPlayer.setVolume(70);
-        if (pendingPlay) { pendingPlay = false; playWinMusic(); }
-      },
-    },
-  });
-};
-
-function playWinMusic() {
-  if (!ytReady) { pendingPlay = true; return; }
-  if (musicMuted) return;
-  try {
-    ytPlayer.seekTo(0);
-    ytPlayer.playVideo();
-    $musicToggle.classList.add('visible');
-    $musicToggle.textContent = '🎵';
-  } catch(e) {}
-}
-
-function stopMusic() {
-  pendingPlay = false;
-  if (!ytReady) return;
-  try {
-    ytPlayer.stopVideo();
-    $musicToggle.classList.remove('visible');
-  } catch(e) {}
-}
-
-$musicToggle.addEventListener('click', () => {
-  if (!ytReady) return;
-  musicMuted = !musicMuted;
-  if (musicMuted) {
-    ytPlayer.pauseVideo();
-    $musicToggle.textContent = '🔇';
-  } else {
-    ytPlayer.playVideo();
-    $musicToggle.textContent = '🎵';
-  }
-});
-
 /* ── State ── */
 let gameId       = null;
 let mySymbol     = null;
 let gameRef      = null;
-let unsubscribe  = null;
-let waitUnsub    = null;
+let unsubscribe  = null;   // listener on the active game
+let waitUnsub    = null;   // listener on `players/O` while we wait for a joiner
 let overlayShown = false;
-let musicPlayed  = false;  // track so we only trigger once per result
 
 const WINS  = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
 const EMOJI = { X: '❤️', O: '💜' };
@@ -603,6 +494,7 @@ let prevBoard = null;
 
 /* ── Helpers ── */
 function genId() {
+  // Pad with zeros so we ALWAYS get exactly 6 base36 chars
   return (Math.random().toString(36) + '000000').slice(2, 8).toUpperCase();
 }
 
@@ -621,6 +513,9 @@ function setStatus(text, cls = '') {
   $statusTxt.textContent = text;
 }
 
+/* Normalize whatever Firebase gives us into a proper 9-slot array.
+   Firebase serializes sparse arrays as objects (e.g. { "0": "X", "3": "O" }),
+   so we read by index — which works for both arrays and plain objects. */
 function normalizeBoard(raw) {
   const b = Array(9).fill(null);
   if (!raw) return b;
@@ -651,6 +546,7 @@ function renderBoard(board, winCombo = null, prev = null) {
 }
 
 function setTurnHighlight(turn, status) {
+  // Only show whose turn it is during active play
   const playing = status === 'playing';
   $cardX.classList.toggle('active', playing && turn === 'X');
   $cardO.classList.toggle('active', playing && turn === 'O');
@@ -659,20 +555,13 @@ function setTurnHighlight(turn, status) {
 /* ── Win overlay ── */
 function showWinOverlay(iWon, isDraw, scores) {
   overlayShown = true;
-
-  // 🎵 Play music on win or draw
-  if (!musicPlayed) {
-    musicPlayed = true;
-    playWinMusic();
-  }
-
   if (isDraw) {
     $winEmoji.textContent = '🤝';
     $winTitle.textContent = "Berabere Kalınıldı!";
     $winSubtitle.textContent = 'Bıdıkkkk bi beraberlikkkk — Var mısınnn bi dahaaa?';
   } else if (iWon) {
     $winEmoji.textContent = EMOJI[mySymbol];
-    $winTitle.textContent = '🎉 Bıdıkkk kazandıınınn!';
+    $winTitle.textContent = '🎉 Bıdıkkk kazandıııı!';
     $winSubtitle.textContent = 'Sürprizimi beğenmişsinizdirrr umarımmm hanfendiiii, siziii çooook seviyoreeee, bıdıkkk yanaklarınızdannnn öpüyoreeee!';
   } else {
     const oppSym = mySymbol === 'X' ? 'O' : 'X';
@@ -689,16 +578,13 @@ function showWinOverlay(iWon, isDraw, scores) {
 
 function hideWinOverlay() {
   overlayShown = false;
-  musicPlayed  = false;
-  stopMusic();
   $finalOverlay.classList.remove('show');
 }
 
 /* ── Game listener ── */
 function listenGame() {
   if (unsubscribe) unsubscribe();
-  prevBoard  = null;
-  musicPlayed = false;
+  prevBoard = null;
 
   unsubscribe = onValue(gameRef, snap => {
     if (!snap.exists()) {
@@ -717,6 +603,7 @@ function listenGame() {
     const rematchO = g.rematchO || false;
     const winCombo = winner ? (checkWin(board, winner) || null) : null;
 
+    // Update scoreboard from Firebase (single source of truth)
     $scoreX.textContent = scores.X || 0;
     $scoreO.textContent = scores.O || 0;
 
@@ -724,6 +611,7 @@ function listenGame() {
     prevBoard = [...board];
     setTurnHighlight(turn, status);
 
+    // Disable cells appropriately
     const myTurn = status === 'playing' && turn === mySymbol;
     $cells.forEach(c => {
       if (!c.classList.contains('taken'))
@@ -742,15 +630,18 @@ function listenGame() {
       const iWon = winner === mySymbol;
       setStatus(iWon ? '🎉 You win!' : 'Opponent wins!', iWon ? 'win' : '');
       if (!overlayShown) showWinOverlay(iWon, false, scores);
+      // Keep overlay score synced
       if (overlayShown) {
         $winScore.textContent = `❤️ ${scores.X || 0}  —  💜 ${scores.O || 0}`;
       }
     }
 
+    // Rematch coordination
     if (status === 'won' || status === 'draw') {
       const bothWant = rematchX && rematchO;
       const iWant    = mySymbol === 'X' ? rematchX : rematchO;
       if (bothWant) {
+        // Only the host (X) writes the new round, so we don't get duplicate updates
         if (mySymbol === 'X') startNextRound(g);
       } else if (iWant) {
         $rematchBtn.textContent = 'Waiting...';
@@ -776,8 +667,7 @@ async function startNextRound(g) {
     rematchX: false,
     rematchO: false,
   });
-  prevBoard   = null;
-  musicPlayed = false;
+  prevBoard = null;
   hideWinOverlay();
 }
 
@@ -797,6 +687,7 @@ document.getElementById('createBtn').addEventListener('click', async () => {
     rematchX: false, rematchO: false,
   });
 
+  // Auto-cleanup: if X drops while waiting (or anytime), the game is removed
   onDisconnect(gameRef).remove();
 
   $displayId.textContent = gameId;
@@ -823,6 +714,7 @@ document.getElementById('copyBtn').addEventListener('click', async () => {
     if (navigator.clipboard && window.isSecureContext) {
       await navigator.clipboard.writeText(id);
     } else {
+      // Fallback for non-secure contexts / older browsers
       const ta = document.createElement('textarea');
       ta.value = id;
       ta.setAttribute('readonly', '');
@@ -859,6 +751,7 @@ async function joinGame() {
   await update(ref(db, `games/${gameId}/players`), { O: true });
   await update(gameRef, { status: 'playing' });
 
+  // Remove the game when this player disconnects, so abandoned games don't pile up
   onDisconnect(gameRef).remove();
 
   hide($lobby); show($game);
@@ -869,6 +762,7 @@ async function joinGame() {
 
 document.getElementById('joinBtn').addEventListener('click', joinGame);
 
+// Submit on Enter, auto-uppercase while typing, clear error on input
 $joinInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') { e.preventDefault(); joinGame(); }
 });
@@ -887,13 +781,14 @@ $cells.forEach(cell => {
     const idx = parseInt(cell.dataset.i, 10);
     if (Number.isNaN(idx)) return;
 
+    // Atomic: validates turn + cell emptiness server-side, prevents races
     await runTransaction(gameRef, current => {
-      if (!current) return;
-      if (current.status !== 'playing') return;
-      if (current.turn !== mySymbol) return;
+      if (!current) return;                                     // game gone
+      if (current.status !== 'playing') return;                 // not in play
+      if (current.turn !== mySymbol) return;                    // not my turn
 
       const board = normalizeBoard(current.board);
-      if (board[idx]) return;
+      if (board[idx]) return;                                   // cell taken
 
       board[idx] = mySymbol;
       current.board = board;
@@ -906,6 +801,7 @@ $cells.forEach(cell => {
         current.winner = mySymbol;
         current.scores = current.scores || { X: 0, O: 0 };
         current.scores[mySymbol] = (current.scores[mySymbol] || 0) + 1;
+        // Don't swap `turn` on game-end — the winner stays the active side
       } else if (draw) {
         current.status = 'draw';
       } else {
@@ -923,16 +819,20 @@ $rematchBtn.addEventListener('click', async () => {
   await update(gameRef, { [field]: true });
 });
 
-/* ── Leave buttons ── */
+/* ── Leave (overlay) ── */
 $leaveBtn.addEventListener('click', leaveCurrentGame);
+
+/* ── Leave (in-game) ── */
 $inGameLeave.addEventListener('click', leaveCurrentGame);
+
+/* ── Cancel (waiting screen) ── */
 document.getElementById('cancelWaitBtn').addEventListener('click', leaveCurrentGame);
 
 async function leaveCurrentGame() {
-  stopMusic();
   if (waitUnsub)   { waitUnsub();   waitUnsub   = null; }
   if (unsubscribe) { unsubscribe(); unsubscribe = null; }
   if (gameRef) {
+    // Cancel pending onDisconnect so it doesn't fire after we've already removed
     try { await onDisconnect(gameRef).cancel(); } catch {}
     try { await remove(gameRef); } catch {}
   }
@@ -944,9 +844,9 @@ function resetToLobby() {
   if (waitUnsub)   { waitUnsub();   waitUnsub   = null; }
   if (unsubscribe) { unsubscribe(); unsubscribe = null; }
   gameId = null; mySymbol = null; gameRef = null; prevBoard = null;
-  musicPlayed = false;
   $scoreX.textContent = '0'; $scoreO.textContent = '0';
   $joinInput.value = ''; $lobbyErr.textContent = '';
+  // Also clear any leftover board/status visuals
   $cells.forEach(c => { c.className = 'cell'; c.textContent = ''; });
   $cardX.classList.remove('active'); $cardO.classList.remove('active');
   setStatus('Connecting...');
