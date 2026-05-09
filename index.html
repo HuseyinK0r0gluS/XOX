@@ -477,12 +477,12 @@ body::before {
 <!-- YouTube IFrame API -->
 <script src="https://www.youtube.com/iframe_api"></script>
 
-<!-- IMPORTANT: onYouTubeIframeAPIReady MUST be in a plain script (not module)
-     so the YouTube API can find it on window. We expose a callback bridge here. -->
+<!-- Bridge: onYouTubeIframeAPIReady MUST be in a plain script (not a module)
+     so the YouTube API can find it on the real global window. -->
 <script>
   window.__ytReadyCallbacks = [];
   window.onYouTubeIframeAPIReady = function () {
-    window.__ytReadyCallbacks.forEach(fn => fn());
+    window.__ytReadyCallbacks.forEach(function(fn) { fn(); });
   };
 </script>
 
@@ -529,7 +529,7 @@ window.__ytReadyCallbacks.push(function () {
       modestbranding: 1,
     },
     events: {
-      onReady: () => {
+      onReady: function() {
         ytReady = true;
         ytPlayer.setVolume(70);
         if (pendingPlay) { pendingPlay = false; playWinMusic(); }
