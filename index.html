@@ -271,6 +271,67 @@ body::before {
 .final-content {
   position: relative; z-index: 1;
   text-align: center; color: white;
+  overflow-y: auto;
+  max-height: 90vh;
+  padding-right: 4px;
+}
+.final-content::-webkit-scrollbar {
+  width: 4px;
+}
+.final-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+.final-content::-webkit-scrollbar-thumb {
+  background: var(--muted);
+  border-radius: 2px;
+}
+
+/* ── Gallery ── */
+.gallery-container {
+  margin: 20px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.gallery-card {
+  position: relative;
+  width: 100%;
+  max-width: 260px;
+  aspect-ratio: 3 / 4;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #0a0a0f;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.6);
+}
+.gallery-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 1;
+  transition: opacity 0.6s ease;
+}
+.gallery-img.fade-out {
+  opacity: 0;
+}
+.gallery-dots {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.gallery-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  border: none;
+  padding: 0;
+}
+.gallery-dot.active {
+  background: var(--accent);
 }
 .final-content .win-emoji {
   font-size: clamp(3.5rem, 14vw, 6rem);
@@ -455,6 +516,15 @@ body::before {
     <span class="win-emoji" id="winEmoji">🎉</span>
     <h2 id="winTitle">Bıdıkkk kazandıınınn!</h2>
     <p id="winSubtitle">İkinciii bi sürprizzz, bıdıkımmm annelerrr gününnn kutlu olsunnnn ilerde dünyanın en bıdısbıdıkkkk en güzellll en iyi annesiii olcaksınnnn bana da böyle güzelll bi kalpli böyle güzelll böyle iyiii birininnnn kocasııı ve çocuklarınınnn babasııı olma şansını verceğinnnn içinnnn teşekkürrrr ederimmmmm, hayatımmmm benimmm herşeyimmmm seni çooook amaaa çoooook seviyorummmm, öpüyorummmm o güzelll bıdıkkk kalbindennnn!</p>
+    
+    <!-- Gallery -->
+    <div id="galleryContainer" class="gallery-container">
+      <div class="gallery-card" id="galleryCard">
+        <img id="galleryImg" class="gallery-img" src="images/photo1.jpg" alt="gallery photo">
+      </div>
+      <div class="gallery-dots" id="galleryDots"></div>
+    </div>
+
     <p id="winScore" style="margin-top:8px; font-size:1.1rem;"></p>
     <div class="final-btns">
       <button class="btn btn-play-again" id="rematchBtn">Play Again</button>
@@ -543,6 +613,130 @@ body::before {
       }
     });
   });
+
+  /* ── Gallery State ── */
+  var galleryCurrentSlide = 0;
+  var gallerySlideshowTimer = null;
+  var galleryTouchStartX = 0;
+  var galleryTouchStartY = 0;
+  var galleryLastInteractionTime = 0;
+
+  window.initGallery = function() {
+    var overlay = document.getElementById('finalOverlay');
+    if (!overlay || !overlay.classList.contains('show')) return;
+    
+    if (!gallerySlideshowTimer) {
+      gallerySlideshowTimer = setInterval(function() {
+        var overlay = document.getElementById('finalOverlay');
+        if (!overlay || !overlay.classList.contains('show')) {
+          clearInterval(gallerySlideshowTimer);
+          gallerySlideshowTimer = null;
+          return;
+        }
+        galleryNextSlide();
+      }, 3000);
+    }
+  };
+
+  window.resetGallery = function() {
+    if (gallerySlideshowTimer) {
+      clearInterval(gallerySlideshowTimer);
+      gallerySlideshowTimer = null;
+    }
+    galleryCurrentSlide = 0;
+    galleryUpdateGallery();
+  };
+
+  window.galleryNextSlide = function() {
+    galleryCurrentSlide = (galleryCurrentSlide + 1) % 10;
+    galleryUpdateGallery();
+    galleryResetTimer();
+  };
+
+  window.galleryPrevSlide = function() {
+    galleryCurrentSlide = (galleryCurrentSlide - 1 + 10) % 10;
+    galleryUpdateGallery();
+    galleryResetTimer();
+  };
+
+  window.galleryGoToSlide = function(index) {
+    if (index >= 0 && index < 10) {
+      galleryCurrentSlide = index;
+      galleryUpdateGallery();
+      galleryResetTimer();
+    }
+  };
+
+  window.galleryUpdateGallery = function() {
+    var img = document.getElementById('galleryImg');
+    var dotsContainer = document.getElementById('galleryDots');
+    
+    if (img) {
+      img.src = 'images/photo' + (galleryCurrentSlide + 1) + '.jpg';
+    }
+    
+    if (dotsContainer) {
+      var dots = dotsContainer.querySelectorAll('.gallery-dot');
+      dots.forEach(function(dot, i) {
+        dot.classList.toggle('active', i === galleryCurrentSlide);
+      });
+    }
+  };
+
+  window.galleryResetTimer = function() {
+    if (gallerySlideshowTimer) {
+      clearInterval(gallerySlideshowTimer);
+    }
+    gallerySlideshowTimer = setInterval(function() {
+      var overlay = document.getElementById('finalOverlay');
+      if (!overlay || !overlay.classList.contains('show')) {
+        clearInterval(gallerySlideshowTimer);
+        gallerySlideshowTimer = null;
+        return;
+      }
+      galleryNextSlide();
+    }, 3000);
+  };
+
+  document.addEventListener('DOMContentLoaded', function() {
+    var dotsContainer = document.getElementById('galleryDots');
+    if (!dotsContainer) return;
+    
+    for (var i = 0; i < 10; i++) {
+      (function(index) {
+        var dot = document.createElement('button');
+        dot.className = 'gallery-dot' + (index === 0 ? ' active' : '');
+        dot.addEventListener('click', function() {
+          window.galleryGoToSlide(index);
+        });
+        dotsContainer.appendChild(dot);
+      })(i);
+    }
+
+    var galleryCard = document.getElementById('galleryCard');
+    if (galleryCard) {
+      galleryCard.addEventListener('touchstart', function(e) {
+        galleryTouchStartX = e.touches[0].clientX;
+        galleryTouchStartY = e.touches[0].clientY;
+      }, false);
+
+      galleryCard.addEventListener('touchend', function(e) {
+        var touchEndX = e.changedTouches[0].clientX;
+        var touchEndY = e.changedTouches[0].clientY;
+        var diffX = galleryTouchStartX - touchEndX;
+        var diffY = galleryTouchStartY - touchEndY;
+        
+        if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) >= 40) {
+          if (diffX > 0) {
+            window.galleryNextSlide();
+          } else {
+            window.galleryPrevSlide();
+          }
+        }
+      }, false);
+    }
+  });
+
 </script>
 
 <!-- YouTube IFrame API — loaded AFTER onYouTubeIframeAPIReady is defined above -->
@@ -665,6 +859,8 @@ function setTurnHighlight(turn, status) {
 function showWinOverlay(iWon, isDraw, scores) {
   overlayShown = true;
 
+  window.initGallery();
+
   if (!musicPlayed) {
     musicPlayed = true;
     window.playWinMusic();
@@ -676,7 +872,7 @@ function showWinOverlay(iWon, isDraw, scores) {
     $winSubtitle.textContent = 'Bıdıkkkk bi beraberlikkkk — Var mısınnn bi dahaaa?';
   } else if (iWon) {
     $winEmoji.textContent = EMOJI[mySymbol];
-    $winTitle.textContent = '🎉 Bıdıkkk kazandıınınn!';
+    $winTitle.textContent = '🎉 Bıdıkkk kazandıingingin!';
     $winSubtitle.textContent = 'İkinciii bi sürprizzz, bıdıkımmm annelerrr gününnn kutlu olsunnnn ilerde dünyanın en bıdısbıdıkkkk en güzellll en iyi annesiii olcaksınnnn bana da böyle güzelll bi kalpli böyle güzelll böyle iyiii birininnnn kocasııı ve çocuklarınınnn babasııı olma şansını verceğinnnn içinnnn teşekkürrrr ederimmmmm, hayatımmmm benimmm herşeyimmmm seni çooook amaaa çoooook seviyorummmm, öpüyorummmm o güzelll bıdıkkk kalbindennnn!';
   } else {
     const oppSym = mySymbol === 'X' ? 'O' : 'X';
@@ -695,6 +891,7 @@ function hideWinOverlay() {
   overlayShown = false;
   musicPlayed  = false;
   window.stopMusic();
+  window.resetGallery();
   $finalOverlay.classList.remove('show');
 }
 

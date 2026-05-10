@@ -454,7 +454,7 @@ body::before {
   <div class="final-content">
     <span class="win-emoji" id="winEmoji">🎉</span>
     <h2 id="winTitle">Bıdıkkk kazandıınınn!</h2>
-    <p id="winSubtitle">Sürprizimi beğenmişsinizdirrr umarımmm hanfendiiii, siziii çooook seviyoreeee, bıdıkkk yanaklarınızdannnn öpüyoreeee!</p>
+    <p id="winSubtitle">İkinciii bi sürprizzz, bıdıkımmm annelerrr gününnn kutlu olsunnnn ilerde dünyanın en bıdısbıdıkkkk en güzellll en iyi annesiii olcaksınnnn bana da böyle güzelll bi kalpli böyle güzelll böyle iyiii birininnnn kocasııı ve çocuklarınınnn babasııı olma şansını verceğinnnn içinnnn teşekkürrrr ederimmmmm, hayatımmmm benimmm herşeyimmmm seni çooook amaaa çoooook seviyorummmm, öpüyorummmm o güzelll bıdıkkk kalbindennnn!</p>
     <p id="winScore" style="margin-top:8px; font-size:1.1rem;"></p>
     <div class="final-btns">
       <button class="btn btn-play-again" id="rematchBtn">Play Again</button>
@@ -474,17 +474,79 @@ body::before {
 
 <div class="notif" id="notif"></div>
 
-<!-- YouTube IFrame API -->
-<script src="https://www.youtube.com/iframe_api"></script>
-
-<!-- IMPORTANT: onYouTubeIframeAPIReady MUST be in a plain script (not module)
-     so the YouTube API can find it on window. We expose a callback bridge here. -->
+<!-- All YouTube logic in a plain script — runs synchronously so
+     onYouTubeIframeAPIReady is on window before the API script loads. -->
 <script>
-  window.__ytReadyCallbacks = [];
+  var ytPlayer    = null;
+  var ytReady     = false;
+  var musicMuted  = false;
+  var pendingPlay = false;
+
   window.onYouTubeIframeAPIReady = function () {
-    window.__ytReadyCallbacks.forEach(fn => fn());
+    ytPlayer = new YT.Player('yt-player', {
+      height: '1',
+      width: '1',
+      videoId: 'z9uGdp_tcgY',
+      playerVars: {
+        autoplay: 0,
+        controls: 0,
+        disablekb: 1,
+        fs: 0,
+        loop: 1,
+        playlist: 'z9uGdp_tcgY',
+        rel: 0,
+        modestbranding: 1,
+      },
+      events: {
+        onReady: function () {
+          ytReady = true;
+          ytPlayer.setVolume(70);
+          if (pendingPlay) { pendingPlay = false; window.playWinMusic(); }
+        },
+      },
+    });
   };
+
+  window.playWinMusic = function () {
+    if (!ytReady) { pendingPlay = true; return; }
+    if (musicMuted) return;
+    try {
+      ytPlayer.seekTo(0);
+      ytPlayer.playVideo();
+      var btn = document.getElementById('musicToggle');
+      if (btn) { btn.classList.add('visible'); btn.textContent = '🎵'; }
+    } catch (e) {}
+  };
+
+  window.stopMusic = function () {
+    pendingPlay = false;
+    if (!ytReady) return;
+    try {
+      ytPlayer.stopVideo();
+      var btn = document.getElementById('musicToggle');
+      if (btn) btn.classList.remove('visible');
+    } catch (e) {}
+  };
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var btn = document.getElementById('musicToggle');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+      if (!ytReady) return;
+      musicMuted = !musicMuted;
+      if (musicMuted) {
+        ytPlayer.pauseVideo();
+        btn.textContent = '🔇';
+      } else {
+        ytPlayer.playVideo();
+        btn.textContent = '🎵';
+      }
+    });
+  });
 </script>
+
+<!-- YouTube IFrame API — loaded AFTER onYouTubeIframeAPIReady is defined above -->
+<script src="https://www.youtube.com/iframe_api"></script>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -505,72 +567,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
 
-/* ── YouTube Music Player ── */
-let ytPlayer      = null;
-let ytReady       = false;
-let musicMuted    = false;
-let pendingPlay   = false;  // play was requested before player was ready
-
-const $musicToggle = document.getElementById('musicToggle');
-
-// Register via the global bridge (module scope can't set window globals directly)
-window.__ytReadyCallbacks.push(function () {
-  ytPlayer = new YT.Player('yt-player', {
-    height: '1',
-    width: '1',
-    videoId: 'z9uGdp_tcgY',
-    playerVars: {
-      autoplay: 0,
-      controls: 0,
-      disablekb: 1,
-      fs: 0,
-      loop: 1,
-      playlist: 'z9uGdp_tcgY',  // needed for loop to work
-      rel: 0,
-      modestbranding: 1,
-    },
-    events: {
-      onReady: () => {
-        ytReady = true;
-        ytPlayer.setVolume(70);
-        if (pendingPlay) { pendingPlay = false; playWinMusic(); }
-      },
-    },
-  });
-});
-
-function playWinMusic() {
-  if (!ytReady) { pendingPlay = true; return; }
-  if (musicMuted) return;
-  try {
-    ytPlayer.seekTo(0);
-    ytPlayer.playVideo();
-    $musicToggle.classList.add('visible');
-    $musicToggle.textContent = '🎵';
-  } catch(e) {}
-}
-
-function stopMusic() {
-  pendingPlay = false;
-  if (!ytReady) return;
-  try {
-    ytPlayer.stopVideo();
-    $musicToggle.classList.remove('visible');
-  } catch(e) {}
-}
-
-$musicToggle.addEventListener('click', () => {
-  if (!ytReady) return;
-  musicMuted = !musicMuted;
-  if (musicMuted) {
-    ytPlayer.pauseVideo();
-    $musicToggle.textContent = '🔇';
-  } else {
-    ytPlayer.playVideo();
-    $musicToggle.textContent = '🎵';
-  }
-});
-
 /* ── State ── */
 let gameId       = null;
 let mySymbol     = null;
@@ -578,7 +574,7 @@ let gameRef      = null;
 let unsubscribe  = null;
 let waitUnsub    = null;
 let overlayShown = false;
-let musicPlayed  = false;  // track so we only trigger once per result
+let musicPlayed  = false;
 
 const WINS  = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
 const EMOJI = { X: '❤️', O: '💜' };
@@ -669,10 +665,9 @@ function setTurnHighlight(turn, status) {
 function showWinOverlay(iWon, isDraw, scores) {
   overlayShown = true;
 
-  // 🎵 Play music on win or draw
   if (!musicPlayed) {
     musicPlayed = true;
-    playWinMusic();
+    window.playWinMusic();
   }
 
   if (isDraw) {
@@ -682,12 +677,12 @@ function showWinOverlay(iWon, isDraw, scores) {
   } else if (iWon) {
     $winEmoji.textContent = EMOJI[mySymbol];
     $winTitle.textContent = '🎉 Bıdıkkk kazandıınınn!';
-    $winSubtitle.textContent = 'Sürprizimi beğenmişsinizdirrr umarımmm hanfendiiii, siziii çooook seviyoreeee, bıdıkkk yanaklarınızdannnn öpüyoreeee!';
+    $winSubtitle.textContent = 'İkinciii bi sürprizzz, bıdıkımmm annelerrr gününnn kutlu olsunnnn ilerde dünyanın en bıdısbıdıkkkk en güzellll en iyi annesiii olcaksınnnn bana da böyle güzelll bi kalpli böyle güzelll böyle iyiii birininnnn kocasııı ve çocuklarınınnn babasııı olma şansını verceğinnnn içinnnn teşekkürrrr ederimmmmm, hayatımmmm benimmm herşeyimmmm seni çooook amaaa çoooook seviyorummmm, öpüyorummmm o güzelll bıdıkkk kalbindennnn!';
   } else {
     const oppSym = mySymbol === 'X' ? 'O' : 'X';
     $winEmoji.textContent = EMOJI[oppSym];
     $winTitle.textContent = 'Bıdıkkkk kaybettiii!';
-    $winSubtitle.textContent = 'Bi dahakine yenersinnnn sıpacıkkk, ben her zamannn o güzell gözlerine yeniliyorummm o kadannn kötü bişey değilll kaybetmekkkk!';
+    $winSubtitle.textContent = 'Bi dahakine yenersinnn kuzucukkkk, dünyanın en muazzam annesine olacakkk o kadınaaa yani bıdıkımaaa sahibimmmm ve üstüne oyunu da kazandımmm bendeki şansa bi look (hehe)';
   }
   $winScore.textContent = `❤️ ${scores.X || 0}  —  💜 ${scores.O || 0}`;
   $rematchHint.textContent = '';
@@ -699,7 +694,7 @@ function showWinOverlay(iWon, isDraw, scores) {
 function hideWinOverlay() {
   overlayShown = false;
   musicPlayed  = false;
-  stopMusic();
+  window.stopMusic();
   $finalOverlay.classList.remove('show');
 }
 
@@ -938,7 +933,7 @@ $inGameLeave.addEventListener('click', leaveCurrentGame);
 document.getElementById('cancelWaitBtn').addEventListener('click', leaveCurrentGame);
 
 async function leaveCurrentGame() {
-  stopMusic();
+  window.stopMusic();
   if (waitUnsub)   { waitUnsub();   waitUnsub   = null; }
   if (unsubscribe) { unsubscribe(); unsubscribe = null; }
   if (gameRef) {
