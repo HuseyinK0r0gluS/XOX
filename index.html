@@ -494,7 +494,7 @@ body::before {
   <div class="final-content">
     <span class="win-emoji" id="winEmoji">🎉</span>
     <h2 id="winTitle">Bıdıkkk kazandıınınn!</h2>
-    <p id="winSubtitle">İkinciii bi sürprizzz, bıdıkımmm annelerrr gününnn kutlu olsunnnn ilerde dünyanın en bıdısbıdıkkkk en güzellll en iyi annesiii olcaksınnnn bana da böyle güzelll bi kalpli böyle güzelll böyle iyiii birininnnn kocasııı ve çocuklarınınnn babasııı olma şansını verceğinnnn içinnnn teşekkürrrr ederimmmmm, hayatımmmm benimmm herşeyimmmm seni çooook amaaa çoooook seviyorummmm, öpüyorummmm o güzelll bıdıkkk kalbindennnn!</p>
+    <p id="winSubtitle">Üçüncüüü bi sürprizzz, 10. ayyydönümümüzzz kutluuuu olsunnnn, seni çoook amaa çoook seviyorummmm, daha niceee musmutluuu aylarımızzz olsunnnn, bana yaşattığınnnn herrr güzelll an, her güzelll ayy içinnnn sonsuzzz teşekkürrr ederimmmm bıdıkkkk sevgilimmm!</p>
 
     <!-- Gallery -->
     <div id="galleryContainer" class="gallery-container">
@@ -811,12 +811,12 @@ function showWinOverlay(iWon, isDraw, scores) {
   } else if (iWon) {
     $winEmoji.textContent = EMOJI[mySymbol];
     $winTitle.textContent = '🎉 Bıdıkkk kazandıınınn!';
-    $winSubtitle.textContent = 'İkinciii bi sürprizzz, bıdıkımmm annelerrr gününnn kutlu olsunnnn ilerde dünyanın en bıdısbıdıkkkk en güzellll en iyi annesiii olcaksınnnn bana da böyle güzelll bi kalpli böyle güzelll böyle iyiii birininnnn kocasııı ve çocuklarınınnn babasııı olma şansını verceğinnnn içinnnn teşekkürrrr ederimmmmm, hayatımmmm benimmm herşeyimmmm seni çooook amaaa çoooook seviyorummmm, öpüyorummmm o güzelll bıdıkkk kalbindennnn!';
+    $winSubtitle.textContent = 'Üçüncüüü bi sürprizzz, 10. ayyydönümümüzzz kutluuuu olsunnnn, seni çoook amaa çoook seviyorummmm, daha niceee musmutluuu aylarımızzz olsunnnn, bana yaşattığınnnn herrr güzelll an, her güzelll ayy içinnnn sonsuzzz teşekkürrr ederimmmm bıdıkkkk sevgilimmm!!';
   } else {
     const oppSym = mySymbol === 'X' ? 'O' : 'X';
     $winEmoji.textContent = EMOJI[oppSym];
     $winTitle.textContent = 'Bıdıkkkk kaybettiii!';
-    $winSubtitle.textContent = 'Bi dahakine yenersinnn kuzucukkkk, dünyanın en muazzam annesine olacakkk o kadınaaa yani bıdıkımaaa sahibimmmm ve üstüne oyunu da kazandımmm bendeki şansa bi look (hehe)';
+    $winSubtitle.textContent = 'Bi dahakine yenersinnn kuzucukkkk,dünyanınnn en güzelll en bıdıkkkk en iyiii sevgilisnee sahibimmmm bendekiii şansa ikinci defa bi lookkk (hehe)';
   }
   $winScore.textContent = `❤️ ${scores.X || 0}  —  💜 ${scores.O || 0}`;
   $rematchHint.textContent = '';
