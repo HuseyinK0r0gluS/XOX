@@ -859,8 +859,6 @@ function setTurnHighlight(turn, status) {
 function showWinOverlay(iWon, isDraw, scores) {
   overlayShown = true;
 
-  window.initGallery();
-
   if (!musicPlayed) {
     musicPlayed = true;
     window.playWinMusic();
@@ -872,7 +870,7 @@ function showWinOverlay(iWon, isDraw, scores) {
     $winSubtitle.textContent = 'Bıdıkkkk bi beraberlikkkk — Var mısınnn bi dahaaa?';
   } else if (iWon) {
     $winEmoji.textContent = EMOJI[mySymbol];
-    $winTitle.textContent = '🎉 Bıdıkkk kazandıingingin!';
+    $winTitle.textContent = '🎉 Bıdıkkk kazandıınınn!';
     $winSubtitle.textContent = 'İkinciii bi sürprizzz, bıdıkımmm annelerrr gününnn kutlu olsunnnn ilerde dünyanın en bıdısbıdıkkkk en güzellll en iyi annesiii olcaksınnnn bana da böyle güzelll bi kalpli böyle güzelll böyle iyiii birininnnn kocasııı ve çocuklarınınnn babasııı olma şansını verceğinnnn içinnnn teşekkürrrr ederimmmmm, hayatımmmm benimmm herşeyimmmm seni çooook amaaa çoooook seviyorummmm, öpüyorummmm o güzelll bıdıkkk kalbindennnn!';
   } else {
     const oppSym = mySymbol === 'X' ? 'O' : 'X';
@@ -885,6 +883,7 @@ function showWinOverlay(iWon, isDraw, scores) {
   $rematchBtn.textContent = 'Play Again';
   $rematchBtn.disabled = false;
   $finalOverlay.classList.add('show');
+  window.initGallery();
 }
 
 function hideWinOverlay() {
