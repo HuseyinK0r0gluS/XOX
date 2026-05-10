@@ -359,7 +359,17 @@ body::before {
 }
 .error-msg { color: var(--x-color); font-size: 0.75rem; text-align: center; min-height: 18px; }
 
-/* ── Music toggle button ── */
+/* ── YouTube music player ── */
+#yt-player-wrap {
+  position: fixed;
+  bottom: -9999px;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: -1;
+}
 .music-toggle {
   position: fixed;
   bottom: 20px;
@@ -513,61 +523,92 @@ body::before {
   </div>
 </div>
 
+<!-- Hidden YouTube iframe for music -->
+<div id="yt-player-wrap">
+  <div id="yt-player"></div>
+</div>
+
 <!-- Floating mute/unmute button -->
 <button class="music-toggle" id="musicToggle" title="Toggle music">🎵</button>
 
 <div class="notif" id="notif"></div>
 
 <script>
-  /* ── Local Audio Player (replaces YouTube iframe) ── */
-  var winAudio   = null;
-  var musicMuted = false;
+  var ytPlayer    = null;
+  var ytReady     = false;
+  var musicMuted  = false;
+  var pendingPlay = false;
 
-  function initAudio() {
-    if (winAudio) return;
-    winAudio = new Audio('audio/voice.mp4');
-    winAudio.loop   = true;
-    winAudio.volume = 0.7;
-  }
+  window.onYouTubeIframeAPIReady = function () {
+    ytPlayer = new YT.Player('yt-player', {
+      height: '1',
+      width: '1',
+      videoId: 'z9uGdp_tcgY',
+      playerVars: {
+        autoplay: 0,
+        controls: 0,
+        disablekb: 1,
+        fs: 0,
+        loop: 1,
+        playlist: 'z9uGdp_tcgY',
+        rel: 0,
+        modestbranding: 1,
+      },
+      events: {
+        onReady: function () {
+          ytReady = true;
+          // Start muted so both winner AND loser can autoplay
+          // (browsers allow muted autoplay always; we unmute immediately after)
+          ytPlayer.mute();
+          ytPlayer.setVolume(70);
+          if (pendingPlay) { pendingPlay = false; window.playWinMusic(); }
+        },
+      },
+    });
+  };
 
   window.playWinMusic = function () {
-    initAudio();
+    if (!ytReady) { pendingPlay = true; return; }
     if (musicMuted) return;
-    winAudio.currentTime = 0;
-    var playPromise = winAudio.play();
-    if (playPromise !== undefined) {
-      playPromise.catch(function () {
-        // Autoplay blocked — silently ignore; user can tap the music button
-      });
-    }
-    var btn = document.getElementById('musicToggle');
-    if (btn) { btn.classList.add('visible'); btn.textContent = '🎵'; }
+    try {
+      ytPlayer.seekTo(0);
+      // Play muted first (always allowed), then unmute — bypasses autoplay block
+      ytPlayer.mute();
+      ytPlayer.playVideo();
+      // Unmute after a short tick so the play command is accepted
+      setTimeout(function() {
+        if (!musicMuted) {
+          ytPlayer.unMute();
+          ytPlayer.setVolume(70);
+        }
+      }, 300);
+      var btn = document.getElementById('musicToggle');
+      if (btn) { btn.classList.add('visible'); btn.textContent = '🎵'; }
+    } catch (e) {}
   };
 
   window.stopMusic = function () {
-    if (!winAudio) return;
-    winAudio.pause();
-    winAudio.currentTime = 0;
-    var btn = document.getElementById('musicToggle');
-    if (btn) btn.classList.remove('visible');
+    pendingPlay = false;
+    if (!ytReady) return;
+    try {
+      ytPlayer.stopVideo();
+      var btn = document.getElementById('musicToggle');
+      if (btn) btn.classList.remove('visible');
+    } catch (e) {}
   };
 
   document.addEventListener('DOMContentLoaded', function () {
     var btn = document.getElementById('musicToggle');
     if (!btn) return;
     btn.addEventListener('click', function () {
-      initAudio();
+      if (!ytReady) return;
       musicMuted = !musicMuted;
       if (musicMuted) {
-        winAudio.muted = true;
+        ytPlayer.mute();
         btn.textContent = '🔇';
       } else {
-        winAudio.muted = false;
-        winAudio.volume = 0.7;
-        // If audio was blocked earlier, try playing now on user gesture
-        if (winAudio.paused) {
-          winAudio.play().catch(function () {});
-        }
+        ytPlayer.unMute();
+        ytPlayer.setVolume(70);
         btn.textContent = '🎵';
       }
     });
@@ -681,6 +722,9 @@ body::before {
     }
   });
 </script>
+
+<!-- YouTube IFrame API — loaded AFTER onYouTubeIframeAPIReady is defined above -->
+<script src="https://www.youtube.com/iframe_api"></script>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
