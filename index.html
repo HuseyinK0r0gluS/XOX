@@ -275,16 +275,9 @@ body::before {
   max-height: 90vh;
   padding-right: 4px;
 }
-.final-content::-webkit-scrollbar {
-  width: 4px;
-}
-.final-content::-webkit-scrollbar-track {
-  background: transparent;
-}
-.final-content::-webkit-scrollbar-thumb {
-  background: var(--muted);
-  border-radius: 2px;
-}
+.final-content::-webkit-scrollbar { width: 4px; }
+.final-content::-webkit-scrollbar-track { background: transparent; }
+.final-content::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 2px; }
 
 /* ── Gallery ── */
 .gallery-container {
@@ -311,9 +304,7 @@ body::before {
   opacity: 1;
   transition: opacity 0.6s ease;
 }
-.gallery-img.fade-out {
-  opacity: 0;
-}
+.gallery-img.fade-out { opacity: 0; }
 .gallery-dots {
   display: flex;
   gap: 6px;
@@ -330,9 +321,7 @@ body::before {
   border: none;
   padding: 0;
 }
-.gallery-dot.active {
-  background: var(--accent);
-}
+.gallery-dot.active { background: var(--accent); }
 .final-content .win-emoji {
   font-size: clamp(3.5rem, 14vw, 6rem);
   display: block; margin-bottom: 14px;
@@ -516,7 +505,7 @@ body::before {
     <span class="win-emoji" id="winEmoji">🎉</span>
     <h2 id="winTitle">Bıdıkkk kazandıınınn!</h2>
     <p id="winSubtitle">İkinciii bi sürprizzz, bıdıkımmm annelerrr gününnn kutlu olsunnnn ilerde dünyanın en bıdısbıdıkkkk en güzellll en iyi annesiii olcaksınnnn bana da böyle güzelll bi kalpli böyle güzelll böyle iyiii birininnnn kocasııı ve çocuklarınınnn babasııı olma şansını verceğinnnn içinnnn teşekkürrrr ederimmmmm, hayatımmmm benimmm herşeyimmmm seni çooook amaaa çoooook seviyorummmm, öpüyorummmm o güzelll bıdıkkk kalbindennnn!</p>
-    
+
     <!-- Gallery -->
     <div id="galleryContainer" class="gallery-container">
       <div class="gallery-card" id="galleryCard">
@@ -544,8 +533,6 @@ body::before {
 
 <div class="notif" id="notif"></div>
 
-<!-- All YouTube logic in a plain script — runs synchronously so
-     onYouTubeIframeAPIReady is on window before the API script loads. -->
 <script>
   var ytPlayer    = null;
   var ytReady     = false;
@@ -570,6 +557,9 @@ body::before {
       events: {
         onReady: function () {
           ytReady = true;
+          // Start muted so both winner AND loser can autoplay
+          // (browsers allow muted autoplay always; we unmute immediately after)
+          ytPlayer.mute();
           ytPlayer.setVolume(70);
           if (pendingPlay) { pendingPlay = false; window.playWinMusic(); }
         },
@@ -582,7 +572,16 @@ body::before {
     if (musicMuted) return;
     try {
       ytPlayer.seekTo(0);
+      // Play muted first (always allowed), then unmute — bypasses autoplay block
+      ytPlayer.mute();
       ytPlayer.playVideo();
+      // Unmute after a short tick so the play command is accepted
+      setTimeout(function() {
+        if (!musicMuted) {
+          ytPlayer.unMute();
+          ytPlayer.setVolume(70);
+        }
+      }, 300);
       var btn = document.getElementById('musicToggle');
       if (btn) { btn.classList.add('visible'); btn.textContent = '🎵'; }
     } catch (e) {}
@@ -605,10 +604,11 @@ body::before {
       if (!ytReady) return;
       musicMuted = !musicMuted;
       if (musicMuted) {
-        ytPlayer.pauseVideo();
+        ytPlayer.mute();
         btn.textContent = '🔇';
       } else {
-        ytPlayer.playVideo();
+        ytPlayer.unMute();
+        ytPlayer.setVolume(70);
         btn.textContent = '🎵';
       }
     });
@@ -619,12 +619,10 @@ body::before {
   var gallerySlideshowTimer = null;
   var galleryTouchStartX = 0;
   var galleryTouchStartY = 0;
-  var galleryLastInteractionTime = 0;
 
   window.initGallery = function() {
     var overlay = document.getElementById('finalOverlay');
     if (!overlay || !overlay.classList.contains('show')) return;
-    
     if (!gallerySlideshowTimer) {
       gallerySlideshowTimer = setInterval(function() {
         var overlay = document.getElementById('finalOverlay');
@@ -670,11 +668,9 @@ body::before {
   window.galleryUpdateGallery = function() {
     var img = document.getElementById('galleryImg');
     var dotsContainer = document.getElementById('galleryDots');
-    
     if (img) {
       img.src = 'images/photo' + (galleryCurrentSlide + 1) + '.jpeg';
     }
-    
     if (dotsContainer) {
       var dots = dotsContainer.querySelectorAll('.gallery-dot');
       dots.forEach(function(dot, i) {
@@ -684,9 +680,7 @@ body::before {
   };
 
   window.galleryResetTimer = function() {
-    if (gallerySlideshowTimer) {
-      clearInterval(gallerySlideshowTimer);
-    }
+    if (gallerySlideshowTimer) clearInterval(gallerySlideshowTimer);
     gallerySlideshowTimer = setInterval(function() {
       var overlay = document.getElementById('finalOverlay');
       if (!overlay || !overlay.classList.contains('show')) {
@@ -701,14 +695,11 @@ body::before {
   document.addEventListener('DOMContentLoaded', function() {
     var dotsContainer = document.getElementById('galleryDots');
     if (!dotsContainer) return;
-    
     for (var i = 0; i < 10; i++) {
       (function(index) {
         var dot = document.createElement('button');
         dot.className = 'gallery-dot' + (index === 0 ? ' active' : '');
-        dot.addEventListener('click', function() {
-          window.galleryGoToSlide(index);
-        });
+        dot.addEventListener('click', function() { window.galleryGoToSlide(index); });
         dotsContainer.appendChild(dot);
       })(i);
     }
@@ -719,24 +710,17 @@ body::before {
         galleryTouchStartX = e.touches[0].clientX;
         galleryTouchStartY = e.touches[0].clientY;
       }, false);
-
       galleryCard.addEventListener('touchend', function(e) {
         var touchEndX = e.changedTouches[0].clientX;
         var touchEndY = e.changedTouches[0].clientY;
         var diffX = galleryTouchStartX - touchEndX;
         var diffY = galleryTouchStartY - touchEndY;
-        
         if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) >= 40) {
-          if (diffX > 0) {
-            window.galleryNextSlide();
-          } else {
-            window.galleryPrevSlide();
-          }
+          if (diffX > 0) { window.galleryNextSlide(); } else { window.galleryPrevSlide(); }
         }
       }, false);
     }
   });
-
 </script>
 
 <!-- YouTube IFrame API — loaded AFTER onYouTubeIframeAPIReady is defined above -->
@@ -897,7 +881,7 @@ function hideWinOverlay() {
 /* ── Game listener ── */
 function listenGame() {
   if (unsubscribe) unsubscribe();
-  prevBoard  = null;
+  prevBoard   = null;
   musicPlayed = false;
 
   unsubscribe = onValue(gameRef, snap => {
