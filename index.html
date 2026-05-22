@@ -605,19 +605,19 @@ body::before {
   };
 
   window.galleryNextSlide = function() {
-    galleryCurrentSlide = (galleryCurrentSlide + 1) % 10;
+    galleryCurrentSlide = (galleryCurrentSlide + 1) % 12;
     galleryUpdateGallery();
     galleryResetTimer();
   };
 
   window.galleryPrevSlide = function() {
-    galleryCurrentSlide = (galleryCurrentSlide - 1 + 10) % 10;
+    galleryCurrentSlide = (galleryCurrentSlide - 1 + 12) % 12;
     galleryUpdateGallery();
     galleryResetTimer();
   };
 
   window.galleryGoToSlide = function(index) {
-    if (index >= 0 && index < 10) {
+    if (index >= 0 && index < 12) {
       galleryCurrentSlide = index;
       galleryUpdateGallery();
       galleryResetTimer();
@@ -654,7 +654,7 @@ body::before {
   document.addEventListener('DOMContentLoaded', function() {
     var dotsContainer = document.getElementById('galleryDots');
     if (!dotsContainer) return;
-    for (var i = 0; i < 10; i++) {
+    for (var i = 0; i < 12; i++) {
       (function(index) {
         var dot = document.createElement('button');
         dot.className = 'gallery-dot' + (index === 0 ? ' active' : '');
